@@ -1,37 +1,25 @@
-# from Elizarovskaya.bot import start_eli_bot
-from Veteranov.bot import start_vet_bot
-from Apollo.bot import start_apo_bot
-from ChernayaRechka.bot import start_che_bot
-from Paroizolaziya.bot import start_par_bot
-from Yanino_bricks.bot import start_yan_bot
-from evropeysakaya.bot import start_evr_bot
+from aiogram import Bot, Dispatcher
+from aiogram.enums import ParseMode
+from aiogram.types import Message
+import asyncio
 
-import threading
+token = "6587921784:AAE-mMJSPH68hVCh_xrWD4aDk6G3ZZhZlEY"
 
-# start_bot = [start_eli_bot, start_vet_bot, start_apo_bot,
-#              start_che_bot, start_par_bot, start_yan_bot, start_evr_bot]
+
+async def get_started(message: Message, bot: Bot):
+    await message.answer(text="Привет!")
+
+
+async def start():
+    bot = Bot(token=token, parse_mode=ParseMode.HTML)
+    dp = Dispatcher
+
+    dp.include_router()
+
+    try:
+        await dp.start_polling(bots=bot)
+    finally:
+        await bot.session.close()
 
 if __name__ == "__main__":
-    # thread1 = threading.Thread(target=start_eli_bot)
-    thread2 = threading.Thread(target=start_vet_bot)
-    thread3 = threading.Thread(target=start_apo_bot)
-    # thread4 = threading.Thread(target=start_che_bot)
-    # thread5 = threading.Thread(target=start_par_bot)
-    thread6 = threading.Thread(target=start_yan_bot)
-    thread7 = threading.Thread(target=start_evr_bot)
-
-    # thread1.start()
-    thread2.start()
-    thread3.start()
-    # thread4.start()
-    # thread5.start()
-    thread6.start()
-    thread7.start()
-
-    # thread1.join()
-    thread2.join()
-    thread3.join()
-    # thread4.join()
-    # thread5.join()
-    thread6.join()
-    thread7.join()
+    asyncio.run(start())
