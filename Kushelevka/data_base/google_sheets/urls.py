@@ -1,0 +1,5 @@
+coming_url = "https://forms.gle/MNLWCfHmxzrUEdYJA"
+expense_url = "https://forms.gle/s31obCjZfyfoNjkm9"
+delete_url = "https://forms.gle/3ZrsYcHGtN8wwaNDA"
+credit_url = "https://forms.gle/j4H1ebw43cdcURPa6"
+saving_url = "https://forms.gle/MDq7zx7AKPakovEQA"
