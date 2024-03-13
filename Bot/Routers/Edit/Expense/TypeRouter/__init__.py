@@ -1,0 +1,1 @@
+from .type_edit_router import create_type_edit_router
