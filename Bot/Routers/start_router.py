@@ -3,19 +3,15 @@ from aiogram.filters import CommandStart
 from aiogram.types import Message
 from aiogram.utils.markdown import hbold
 
-startRouter = Router()
+from Bot.Keyboards.start_kb import create_start_kb
 
 
-@startRouter.message(CommandStart())
-async def start_messaging(message: Message) -> None:
-    await message.answer(f"Привет,{hbold(message.from_user.full_name)}, я твой личный финансовый помощник!")
-
-
-def create_start_router(bot):
+def create_start_router():
     router = Router()
 
     @router.message(CommandStart())
     async def start_messaging(message: Message) -> None:
-        await message.answer(f"Привет, {hbold(message.from_user.full_name)}, я твой личный финансовый помощник!")
+        await message.answer(text=f"Здравствуйте! Приступим к записи расходов и приходов",
+                             reply_markup=create_start_kb())
 
     return router

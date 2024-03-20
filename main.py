@@ -1,46 +1,30 @@
 import asyncio
 import logging
 
-from aiogram import Bot, Dispatcher
+from aiogram import Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
+from Bot.create_bot import ProjectBot  # Предполагается, что ProjectBot уже настроен для работы с Google Sheets
 from Bot.run_bot import setup_routers
-from Database.create_db import create_tables_with_drop
-from Database.db_base import DatabaseManager
 
 
 # Настройка логирования
 def setup_logging():
-    # Настройка базовой конфигурации логгера
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
-
-    # Добавление StreamHandler для вывода логов в консоль
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    console_handler.setFormatter(formatter)
-    logging.getLogger('').addHandler(console_handler)
-
     logger = logging.getLogger(__name__)
     logger.info("Логирование настроено")
     return logger
 
 
 # Создание и настройка экземпляра бота
-async def create_bot_instance(token, database_path):
+async def create_bot_instance(token, google_sheet_url):
     logger = logging.getLogger(__name__)
-    logger.info(f"Инициализация бота с токеном {token} и базой данных {database_path}")
+    logger.info(f"Инициализация бота с токеном {token} и Google Sheet {google_sheet_url}")
 
-    # Установка базы данных для этого экземпляра
-    DatabaseManager.set_database(database_path)
-
-    # Проверка и создание таблиц, если они еще не созданы
-    create_tables_with_drop()
-
-    bot = Bot(token=token)
+    bot = ProjectBot(token=token, google_sheet_path=google_sheet_url)
     storage = MemoryStorage()
     dp = Dispatcher(bot=bot, storage=storage)
 
@@ -51,12 +35,11 @@ async def create_bot_instance(token, database_path):
 
 
 # Запуск бота
-async def run_bot(token, db_name):
+async def run_bot(token, google_sheet_url):
     logger = logging.getLogger(__name__)
-    database_path = f'Data/{db_name}'
-    logger.info(f"Запуск бота с базой данных {database_path}")
+    logger.info(f"Запуск бота с Google Sheet {google_sheet_url}")
 
-    dp, bot = await create_bot_instance(token, database_path)
+    dp, bot = await create_bot_instance(token, google_sheet_url)
     await dp.start_polling(bot)
 
 
@@ -66,13 +49,13 @@ async def main():
     logger.info("Запуск основной функции")
 
     projects = [
-        {"token": "6397282799:AAG-kCn6jHua9W9y48L20K_IDM-5kPEY3P0", "database_name": "project_1.db"},
-        {"token": "6780094138:AAGqgwm5-RNuXOWGfvtGGDCXWaYsQbJWLns", "database_name": "project_2.db"}
+        {"token": "6999923210:AAHB6YtJLw7J8CWH3HKPD3sf6MiF-NkZpzU",
+         "url": "https://docs.google.com/spreadsheets/d/1ksrGs8NqLaqH7WXKu2Dv1n294Oj32bB_6oYVQ0GKh54"}
     ]
 
     logger.info(f"Запуск ботов с конфигурациями: {projects}")
 
-    tasks = [run_bot(project['token'], project['database_name']) for project in projects]
+    tasks = [run_bot(project['token'], project['url']) for project in projects]
     await asyncio.gather(*tasks)
 
 

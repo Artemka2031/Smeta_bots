@@ -4,10 +4,11 @@ from aiogram.types import Message, CallbackQuery
 
 from Bot.Keyboards.Operations.delete import create_delete_operation_kb, DeleteOperation, ConfirmDeleteOperation
 from Bot.Routers.AddExpense.expense_state_class import Expense
+from Bot.create_bot import ProjectBot
 from Database.Tables.ExpensesTables import Expense as ExpenseDB
 
 
-def create_comment_router(bot: Bot):
+def create_comment_router(bot: ProjectBot):
     comment_router = Router()
 
     @comment_router.message(Expense.comment)

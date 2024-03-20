@@ -5,10 +5,11 @@ from aiogram.types import CallbackQuery, Message
 from Bot.Filters.check_date import CheckDate
 from Bot.Keyboards.Operations.category import TodayCallback, category_choose_kb
 from Bot.Routers.AddExpense.expense_state_class import Expense
+from Bot.create_bot import ProjectBot
 from Database.Tables.ExpensesTables import ExpenseCategory
 
 
-def create_date_router(bot: Bot):
+def create_date_router(bot: ProjectBot):
     date_router = Router()
 
     @date_router.callback_query(Expense.date, TodayCallback.filter())

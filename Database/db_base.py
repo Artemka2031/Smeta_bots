@@ -17,21 +17,21 @@ def initialize_logger(logger_name, log_level=logging.INFO):
 
 
 class DatabaseManager:
-    current_db = SqliteDatabase(None)
+    def __init__(self, database_path: str):
+        self.database = SqliteDatabase(database_path)
+        self.database.connect()
 
-    @staticmethod
-    def set_database(path):
-        DatabaseManager.current_db.init(path)
+    def get_database(self):
+        return self.database
 
-    @staticmethod
-    def get_database():
-        return DatabaseManager.current_db
+    def close_connection(self):
+        if not self.database.is_closed():
+            self.database.close()
 
 
 class BaseModel(Model):
     class Meta:
         abstract = True
-        database = DatabaseManager.get_database()
 
 
 class BaseCategory(BaseModel):

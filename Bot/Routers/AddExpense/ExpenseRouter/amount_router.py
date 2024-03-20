@@ -4,9 +4,10 @@ from aiogram.types import Message
 
 from Bot.Filters.check_amount import CheckAmount
 from Bot.Routers.AddExpense.expense_state_class import Expense
+from Bot.create_bot import ProjectBot
 
 
-def create_amount_router(bot: Bot):
+def create_amount_router(bot: ProjectBot):
     amount_router = Router()
 
     @amount_router.message(Expense.amount, CheckAmount(F.text))
