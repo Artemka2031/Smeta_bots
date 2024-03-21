@@ -20,14 +20,12 @@ def create_expenses_router(bot: ProjectBot):
     @expenses_router.message(Command(bot_commands.add_expense))
     @expenses_router.message(F.text.casefold() == "расход ₽")
     async def start_expense_adding(message: Message, state: FSMContext) -> None:
-        await bot.send_message(chat_id=message.chat.id,
-                               text=f"{bot.google_sheets.update_expense_with_comment("Р2", "2", "01.03.2024", 2000, "Комментарий")}:\n")
-
         await state.clear()
         sent_message = await message.answer(text="Выберете дату расхода:",
                                             reply_markup=create_today_kb())
         await state.update_data(date_message_id=sent_message.message_id)
         await state.set_state(Expense.date)
+        bot.google_sheets.update_expense_with_comment("Р2", "2.3", "02.03.2024", 1000, "Комментарий")
 
     @expenses_router.message(Command("cancel_expense"))
     @expenses_router.message(F.text.casefold() == "отмена расхода")
@@ -48,6 +46,8 @@ def create_expenses_router(bot: ProjectBot):
 
         await message.answer(text="Расход отменён")
         await state.clear()
+
+
 
     # Добавляем роутеры по работе с датой, категориями, суммой расхода и комментариями
     expenses_router.include_router(create_date_router(bot))

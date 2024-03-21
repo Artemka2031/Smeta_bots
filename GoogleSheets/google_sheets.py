@@ -1,9 +1,14 @@
+import logging
 import re
 from pathlib import Path
 
 import pygsheets
 
-cred_path = Path("P:/Python/Smeta_bots") / "GoogleSheets" / "creds.json"
+cred_path = Path("P:/PythonProjects/Smeta_bots") / "GoogleSheets" / "creds.json"
+
+# Настройка логгера
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 
 class GoogleSheets:
@@ -149,10 +154,36 @@ class GoogleSheets:
         if row_index is None:
             raise ValueError(f"Строка для кода {section_code} и подкатегории {category_code} не найдена.")
 
-        # Обновляем ячейку с суммой расхода
-        self.ws.update_value((row_index, column_index), amount)
+        # Получаем ячейку
+        cell = self.ws.cell((row_index, column_index))
 
-        self.ws.cell((row_index, column_index)).comment = comment
+        # Получаем названия раздела и категории
+        section_name = self.ws.cell((row_index - 1, 3)).value.split(':', 1)[-1].strip()
+        category_name = self.ws.cell((row_index, 3)).value
 
-        # Добавляем комментарий к этой же ячейке
-        self.ws.add_note((row_index, column_index), comment)
+        # Добавляем новый комментарий к существующему, если он есть
+        current_comment = cell.note or ""
+        new_comment = f"{current_comment}\n{comment}" if current_comment else comment
+
+        # Устанавливаем обновленный комментарий для этой ячейки
+        cell.note = new_comment
+
+        # Сохраняем изменения
+        cell.update()
+
+        # Извлекаем числовое значение из ячейки и суммируем с переданным значением
+        current_value = cell.value
+        current_value = current_value.strip().replace("\xa0", "").replace(" ", "").replace(",", ".").replace("₽", "")
+        current_value = float(current_value) if current_value else 0
+        new_value = current_value + float(amount)
+
+        # Обновляем значение ячейки с суммой расхода
+        # cell.value = f"{str(new_value).replace('.', ',')}".strip()
+        cell.value = new_value
+
+        # Сохраняем изменения
+        cell.update()
+
+        # Логируем успешное добавление расхода
+        logger.info(f"Расход добавлен: Раздел [{section_name}], Категория [{category_name}], "
+                    f"Дата [{date}], Сумма [{amount}₽], Комментарий [{comment}]. Ячейка [{cell.label}].")

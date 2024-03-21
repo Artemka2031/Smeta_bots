@@ -6,17 +6,10 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 from Bot.create_bot import ProjectBot  # Предполагается, что ProjectBot уже настроен для работы с Google Sheets
 from Bot.run_bot import setup_routers
+from logger import setup_logging
 
 
 # Настройка логирования
-def setup_logging():
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
-    logger = logging.getLogger(__name__)
-    logger.info("Логирование настроено")
-    return logger
 
 
 # Создание и настройка экземпляра бота
