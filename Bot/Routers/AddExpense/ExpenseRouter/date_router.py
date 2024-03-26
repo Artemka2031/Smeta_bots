@@ -3,10 +3,10 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from Bot.Filters.check_date import CheckDate
-from Bot.Keyboards.Operations.category import TodayCallback, category_choose_kb
+from Bot.Keyboards.Operations.category import TodayCallback
+from Bot.Keyboards.Operations.wallet import create_wallet_keyboard
 from Bot.Routers.AddExpense.expense_state_class import Expense
 from Bot.create_bot import ProjectBot
-from Database.Tables.ExpensesTables import ExpenseCategory
 
 
 def create_date_router(bot: ProjectBot):
@@ -28,14 +28,12 @@ def create_date_router(bot: ProjectBot):
 
         date = callback_data.today
         await query.message.edit_text(f"Выбрана дата: {date}", reply_markup=None)
-
         await state.update_data(date=date)
 
-        category_message = await bot.send_message(chat_id=chat_id, text="Выберите категорию:",
-                                                  reply_markup=category_choose_kb(ExpenseCategory))
-        await state.update_data(category_message_id=category_message.message_id)
-
-        await state.set_state(Expense.category)
+        wallet_message = await bot.send_message(chat_id=chat_id, text="Выберите кошелек для расходов:",
+                                                reply_markup=create_wallet_keyboard())
+        await state.update_data(wallet_message_id=wallet_message.message_id)
+        await state.set_state(Expense.wallet)
 
     @date_router.message(Expense.date, CheckDate(F.text))
     async def invalid_date_format(message: Message, state: FSMContext):
@@ -68,15 +66,15 @@ def create_date_router(bot: ProjectBot):
 
         await message.delete()
 
-        await state.update_data(date=date)
-
         date_message_id = (await state.get_data())["date_message_id"]
         await bot.edit_message_text(chat_id=chat_id, message_id=date_message_id,
                                     text=f"Выбрана дата: {date}", reply_markup=None)
-        category_message = await bot.send_message(chat_id=chat_id, text="Выберите категорию:",
-                                                  reply_markup=category_choose_kb(ExpenseCategory))
-        await state.update_data(category_message_id=category_message.message_id)
+        await state.update_data(date=date)
 
-        await state.set_state(Expense.category)
+
+        wallet_message = await bot.send_message(chat_id=chat_id, text="Выберите кошелек для расходов:",
+                                                reply_markup=create_wallet_keyboard())
+        await state.update_data(wallet_message_id=wallet_message.message_id)
+        await state.set_state(Expense.wallet)
 
     return date_router

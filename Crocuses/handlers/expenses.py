@@ -38,7 +38,7 @@ async def start_expence_adding(message_from: types.Message, state: FSMContext) -
 
 category_choose = CallbackData("expence", "callback_data", "message_id")
 move = CallbackData("movement", "move", "message_id")
-credititors_debt = CallbackData("debt", "creditor", "debt")
+credititors_debt = CallbackData("debt", "creditor_borrow", "debt")
 
 
 async def load_date(callback_query: types.CallbackQuery, state: FSMContext):
@@ -142,7 +142,7 @@ async def load_creditor(call: types.CallbackQuery, callback_data: dict, state: F
 
     # Если взяли в долг
     async with state.proxy() as data:
-        creditor = callback_data.get("creditor")
+        creditor = callback_data.get("creditor_borrow")
         debt = callback_data.get("debt")
 
         wallet = [creditor, debt]

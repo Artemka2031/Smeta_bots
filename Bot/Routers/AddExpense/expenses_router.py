@@ -9,6 +9,7 @@ from Bot.Routers.AddExpense.ExpenseRouter.amount_router import create_amount_rou
 from Bot.Routers.AddExpense.ExpenseRouter.category_router import create_category_router
 from Bot.Routers.AddExpense.ExpenseRouter.comment_router import create_comment_router
 from Bot.Routers.AddExpense.ExpenseRouter.date_router import create_date_router
+from Bot.Routers.AddExpense.ExpenseRouter.wallet_router import create_wallet_router
 from Bot.Routers.AddExpense.expense_state_class import Expense
 from Bot.commands import bot_commands
 from Bot.create_bot import ProjectBot
@@ -25,7 +26,6 @@ def create_expenses_router(bot: ProjectBot):
                                             reply_markup=create_today_kb())
         await state.update_data(date_message_id=sent_message.message_id)
         await state.set_state(Expense.date)
-        bot.google_sheets.update_expense_with_comment("Р2", "2.3", "02.03.2024", 1000, "Комментарий")
 
     @expenses_router.message(Command("cancel_expense"))
     @expenses_router.message(F.text.casefold() == "отмена расхода")
@@ -34,7 +34,7 @@ def create_expenses_router(bot: ProjectBot):
         data = await state.get_data()
         await message.delete()
 
-        fields_to_check = ["date_message_id", "category_message_id", "amount_message_id", "comment_message_id"]
+        fields_to_check = ["date_message_id", "chapter_message_id", "amount_message_id", "comment_message_id"]
 
         delete_messages = [data[field] for field in fields_to_check if field in data]
 
@@ -47,11 +47,10 @@ def create_expenses_router(bot: ProjectBot):
         await message.answer(text="Расход отменён")
         await state.clear()
 
-
-
     # Добавляем роутеры по работе с датой, категориями, суммой расхода и комментариями
     expenses_router.include_router(create_date_router(bot))
-    expenses_router.include_router(create_category_router())
+    expenses_router.include_router(create_wallet_router(bot))
+    expenses_router.include_router(create_category_router(bot))
     expenses_router.include_router(create_amount_router(bot))
     expenses_router.include_router(create_comment_router(bot))
 

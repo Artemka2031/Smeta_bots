@@ -56,7 +56,7 @@ class General(GoogleSheets):
             # update date
             wks.update_value((cells_row, date_col), data[date_col - 1])
 
-            # upload creditor of expence data
+            # upload creditor_borrow of expence data
             wks.update_value((cells_row, creditor_col), data[creditor_col - 1])
 
             # update done data

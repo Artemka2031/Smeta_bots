@@ -1,11 +1,13 @@
-from aiogram import Router, F, Bot
+from datetime import datetime
+
+from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 
 from Bot.Keyboards.Operations.delete import create_delete_operation_kb, DeleteOperation, ConfirmDeleteOperation
+from Bot.Keyboards.start_kb import create_start_kb
 from Bot.Routers.AddExpense.expense_state_class import Expense
 from Bot.create_bot import ProjectBot
-from Database.Tables.ExpensesTables import Expense as ExpenseDB
 
 
 def create_comment_router(bot: ProjectBot):
@@ -14,36 +16,125 @@ def create_comment_router(bot: ProjectBot):
     @comment_router.message(Expense.comment)
     async def set_comment(message: Message, state: FSMContext):
         await message.delete()
-        chat_id = message.chat.id
         comment = message.text
+
         data = await state.get_data()
-
-        date = data["date"]
-        category_id = data["category"]["category_id"]
-        category_name = data["category"]["category_name"]
-        type_id = data["type"]["type_id"]
-        type_name = data["type"]["type_name"]
-        amount = data["amount"]
-
-        expense = ExpenseDB.add(date, category_id, type_id, amount, comment)
-        expense_id = expense.id
-
-        messages_ids = [data["date_message_id"], data["category_message_id"],
-                        data["amount_message_id"], data["comment_message_id"]]
-
         await state.clear()
 
-        for message_id in messages_ids:
-            await bot.delete_message(chat_id=chat_id, message_id=message_id)
+        comment_message_id = data["comment_message_id"]
+        await bot.edit_message_text(chat_id=message.chat.id, message_id=comment_message_id,
+                                    text=f"Комментарий: {comment}")
 
-        await bot.send_message(chat_id=chat_id,
-                               text=f"<b>✨ Добавлен расход</b>\n"
-                                    f"Дата: <code>{date}</code>\n"
-                                    f"Тип: <code>{type_name}</code>\n"
-                                    f"Категория: <code>{category_name}</code>\n"
-                                    f"Сумма: <code>{amount}</code>\n"
-                                    f"Комментарий: <code>{comment}</code>\n",
-                               reply_markup=create_delete_operation_kb(operation_id=expense_id, confirm=False))
+        date_obj = datetime.strptime(data["date"], '%d.%m.%y')
+        date = date_obj.strftime('%d.%m.%Y')
+
+        amount = data["amount"]
+        wallet = data["wallet"]
+
+        chat_id = message.chat.id
+
+        messages_ids = [data["date_message_id"], data["wallet_message_id"], data["amount_message_id"],
+                        data["comment_message_id"]]
+
+        try:
+            chapter_message_id = data["chapter_message_id"]
+            messages_ids.append(chapter_message_id)
+        except KeyError:
+            pass
+
+        try:
+            [await bot.delete_message(chat_id=chat_id, message_id=message_id) for message_id in messages_ids]
+        except Exception:
+            pass
+
+        if wallet == "Проект":
+            chapter_code = data["chapter_code"]
+            category_code = data.get("category_code", "")
+            subcategory_code = data.get("subcategory_code", "")
+
+            processing_message = await bot.send_message(chat_id=chat_id, text="Идет процесс добавления расхода...")
+
+            category_name = await bot.google_sheets.get_category_name(chapter_code, category_code)
+            subcategory_name = await bot.google_sheets.get_subcategory_name(chapter_code, category_code,
+                                                                            subcategory_code) if subcategory_code else ""
+            category_name_to_use = subcategory_name or category_name
+            category_code_to_use = subcategory_code or category_code
+
+            await bot.google_sheets.update_expense_with_comment(chapter_code, category_code_to_use, date, amount,
+                                                                comment)
+
+            operation_id = await bot.record_expense_operation(chapter_code, category_code_to_use, date, amount, comment)
+
+            await bot.edit_message_text(chat_id=chat_id, message_id=processing_message.message_id,
+                                        text=f"<b>✨ Расход успешно добавлен</b>\n"
+                                             f"Дата: <code>{date}</code>\n"
+                                             f"Категория: <code>{category_name_to_use}</code>\n"
+                                             f"Сумма: <code>{amount}</code> ₽\n"
+                                             f"Комментарий: <code>{comment}</code>\n",
+                                        reply_markup=create_delete_operation_kb(operation_id, False))
+
+        elif wallet == "Взять в долг":
+            chapter_code = data["chapter_code"]
+            category_code = data.get("category_code", "")
+            subcategory_code = data.get("subcategory_code", "")
+            coefficient = data.get("coefficient", 1.0)  # Предполагаем, что коэффициент был получен ранее
+
+            processing_message = await bot.send_message(chat_id=chat_id,
+                                                        text="Идет процесс добавления записи о долге и расходе...")
+
+            category_name = await bot.google_sheets.get_category_name(chapter_code, category_code)
+            subcategory_name = await bot.google_sheets.get_subcategory_name(chapter_code, category_code,
+                                                                            subcategory_code) if subcategory_code else ""
+            category_name_to_use = subcategory_name or category_name
+            category_code_to_use = subcategory_code or category_code
+
+            creditor = data["creditor"]
+            borrowing_amount = round(amount * coefficient)
+            saving_amount = round(amount * (1 - coefficient)) if coefficient != 1 else 0
+
+            # Записываем расход
+            await bot.google_sheets.update_expense_with_comment(chapter_code, category_code_to_use, date, amount,
+                                                                comment)
+
+            # Записываем долг
+            await bot.google_sheets.record_borrowing(creditor, date, borrowing_amount, comment)
+
+            operation_id = await bot.record_operation(date, creditor, chapter_code, category_code_to_use, amount,
+                                                      coefficient, comment)
+
+            # Записываем экономию, если есть
+            if saving_amount > 0:
+                await bot.google_sheets.record_saving(creditor, date, saving_amount, comment)
+
+            # Отправляем сообщение об успешной операции
+            await bot.edit_message_text(chat_id=chat_id, message_id=processing_message.message_id,
+                                        text=f"<b>✨ Записан долг и расход</b>\n"
+                                             f"Дата: <code>{date}</code>\n"
+                                             f"Категория: <code>{category_name_to_use}</code>\n"
+                                             f"Кредитор: <code>{creditor}</code>\n"
+                                             f"Коэффициент: <code>{coefficient}</code>\n"
+                                             f"Взятая сумма: <code>{borrowing_amount}</code> ₽\n"
+                                             f"Экономия: <code>{saving_amount}</code> ₽\n"
+                                             f"Общий расход: <code>{amount}</code> ₽\n"
+                                             f"Комментарий: <code>{comment}</code>\n",
+                                        reply_markup=create_delete_operation_kb(operation_id, False))
+
+        elif wallet == "Вернуть долг":
+            creditor = data["creditor"]
+            processing_message = await bot.send_message(chat_id=chat_id, text="Идет процесс возврата долга...")
+
+            await bot.google_sheets.record_repayment(creditor, date, amount, comment)
+            operation_id = await bot.record_debt_repayment(creditor, date, amount, comment)
+
+            await bot.edit_message_text(chat_id=chat_id, message_id=processing_message.message_id,
+                                        text=f"<b>✨ Возврат долга</b>\n"
+                                             f"Дата: <code>{date}</code>\n"
+                                             f"Кредитор: <code>{creditor}</code>\n"
+                                             f"Сумма: <code>{amount}</code> ₽\n"
+                                             f"Комментарий: <code>{comment}</code>\n",
+                                        reply_markup=create_delete_operation_kb(operation_id, False))
+
+        await bot.send_message(chat_id=chat_id, text="Выберите следующую операцию:", reply_markup=create_start_kb())
 
     @comment_router.callback_query(DeleteOperation.filter(F.delete == True))
     async def confirm_delete_expense(query: CallbackQuery, callback_data: DeleteOperation):
@@ -55,16 +146,35 @@ def create_comment_router(bot: ProjectBot):
     async def delete_expense(query: CallbackQuery, callback_data: DeleteOperation):
         await query.answer()
 
-        message_text = query.message.text
-        expense_id = callback_data.operation_id
 
-        try:
-            ExpenseDB.remove(expense_id)
-            await query.message.edit_text(text="<b>***Удалено***</b>\n" + message_text, reply_markup=None)
-        except ExpenseDB.DoesNotExist:
-            await query.message.answer(text="Расход не найден")
-        except Exception as e:
-            await query.message.answer(text=f"Неизвестная ошибка: {e}")
+        message_text = query.message.text
+        await query.message.edit_text(text="Идет процесс удаления записи...\n\n" + message_text, reply_markup=None)
+
+        operation_id = callback_data.operation_id
+
+        expense = await bot.get_expense_by_id(operation_id)
+
+        # Удаление записи в зависимости от наличия данных о кредиторе и категории
+        if expense.creditor and expense.chapter_code:
+            # Удаляем запись о расходе, взятом долге и экономии, если коэффициент не равен 1
+            await bot.google_sheets.remove_expense(expense.chapter_code, expense.category_code_to_use, expense.date,
+                                                   expense.amount, expense.comment)
+            await bot.google_sheets.remove_borrowing(expense.creditor, expense.date,
+                                                     expense.amount * expense.coefficient, expense.comment)
+            if expense.coefficient != 1:
+                saving_amount = round(expense.amount * (1 - expense.coefficient))
+                await bot.google_sheets.remove_saving(expense.creditor, expense.date, saving_amount, expense.comment)
+        elif expense.creditor:
+            await bot.google_sheets.remove_repayment(expense.creditor, expense.date, expense.amount, expense.comment)
+        else:
+            await bot.google_sheets.remove_expense(expense.chapter_code, expense.category_code_to_use, expense.date,
+                                                   expense.amount, expense.comment)
+
+        # Удаление записи из базы данных
+        expense.delete_instance()
+
+        # Отправка сообщения пользователю об успешном удалении
+        await query.message.edit_text("*** Удалено ***\n\n" + message_text)
 
     @comment_router.callback_query(ConfirmDeleteOperation.filter(F.confirm_delete == False))
     async def cancel_delete_expense(query: CallbackQuery, callback_data: ConfirmDeleteOperation):

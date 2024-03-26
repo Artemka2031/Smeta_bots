@@ -4,20 +4,18 @@ import logging
 from aiogram import Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from Bot.create_bot import ProjectBot  # Предполагается, что ProjectBot уже настроен для работы с Google Sheets
+from Bot.create_bot import ProjectBot
 from Bot.run_bot import setup_routers
+from config import projects
 from logger import setup_logging
 
 
-# Настройка логирования
-
-
 # Создание и настройка экземпляра бота
-async def create_bot_instance(token, google_sheet_url):
+async def create_bot_instance(token, google_sheet_url, database_path):
     logger = logging.getLogger(__name__)
-    logger.info(f"Инициализация бота с токеном {token} и Google Sheet {google_sheet_url}")
+    logger.info(f"Инициализация бота с токеном {token}, Google Sheet {google_sheet_url} и базой данных {database_path}")
 
-    bot = ProjectBot(token=token, google_sheet_path=google_sheet_url)
+    bot = ProjectBot(token=token, google_sheet_path=google_sheet_url, database_path=database_path)
     storage = MemoryStorage()
     dp = Dispatcher(bot=bot, storage=storage)
 
@@ -28,11 +26,11 @@ async def create_bot_instance(token, google_sheet_url):
 
 
 # Запуск бота
-async def run_bot(token, google_sheet_url):
+async def run_bot(token, google_sheet_url, database_path):
     logger = logging.getLogger(__name__)
-    logger.info(f"Запуск бота с Google Sheet {google_sheet_url}")
+    logger.info(f"Запуск бота с Google Sheet {google_sheet_url} и базой данных {database_path}")
 
-    dp, bot = await create_bot_instance(token, google_sheet_url)
+    dp, bot = await create_bot_instance(token, google_sheet_url, database_path)
     await dp.start_polling(bot)
 
 
@@ -41,14 +39,9 @@ async def main():
     logger = setup_logging()
     logger.info("Запуск основной функции")
 
-    projects = [
-        {"token": "6999923210:AAHB6YtJLw7J8CWH3HKPD3sf6MiF-NkZpzU",
-         "url": "https://docs.google.com/spreadsheets/d/1ksrGs8NqLaqH7WXKu2Dv1n294Oj32bB_6oYVQ0GKh54"}
-    ]
-
     logger.info(f"Запуск ботов с конфигурациями: {projects}")
 
-    tasks = [run_bot(project['token'], project['url']) for project in projects]
+    tasks = [run_bot(project['token'], project['url'], project['db']) for project in projects]
     await asyncio.gather(*tasks)
 
 

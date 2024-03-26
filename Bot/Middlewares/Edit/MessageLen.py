@@ -36,7 +36,7 @@ class LimitTypeLenMiddleware(BaseMiddleware):
 
             sent_message = state_data["sent_message"]
             query_message = state_data["query_message"]
-            category_id = state_data["category_id"]
+            category_id = state_data["chapter_code"]
             message_text = event.text
 
             if len(message_text) >= MAX_LEN:
