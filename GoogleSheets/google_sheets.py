@@ -33,6 +33,22 @@ class GoogleSheets:
 
         return chapters
 
+    async def get_coming(self):
+        # Извлечение значений из столбца B
+        coming_codes = self.ws.get_col(2, include_tailing_empty=False)
+        # Извлечение значений из столбца C
+        coming_names = self.ws.get_col(3, include_tailing_empty=False)
+
+        # Формирование словаря с названиями разделов
+        coming = {}
+        pattern = re.compile(r'^П$')  # Шаблон для поиска кодов разделов
+        for i, code in enumerate(coming_codes):
+            if pattern.match(code) and i < len(coming_names):
+                coming[code] = coming_names[i].split(':', 1)[-1].strip() if ':' in coming_names[i] else \
+                    coming_names[i]
+
+        return coming
+
     async def get_chapter_name(self, chapter_code):
         chapters = await self.get_chapters()
 
