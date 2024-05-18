@@ -534,3 +534,4 @@ class GoogleSheets:
         logger.info(
             f"Запись об экономии удалена: Кредитор [{creditor_name}], "
             f"Дата [{date}], Сумма [{amount}₽], Комментарий [{comment}].")
+
