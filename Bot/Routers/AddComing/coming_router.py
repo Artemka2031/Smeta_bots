@@ -9,13 +9,12 @@ from Bot.Routers.AddComing.ComingRouter.amount_router import create_amount_route
 from Bot.Routers.AddComing.ComingRouter.category_router import create_category_router
 from Bot.Routers.AddComing.ComingRouter.comment_router import create_comment_router
 from Bot.Routers.AddComing.ComingRouter.date_router import create_date_router
-from Bot.Routers.AddComing.ComingRouter.wallet_router import create_wallet_router
 from Bot.Routers.AddComing.coming_state_class import Coming
 from Bot.commands import bot_commands
 from Bot.create_bot import ProjectBot
 
 
-def create_expenses_router(bot: ProjectBot):
+def create_comings_router(bot: ProjectBot):
     comings_router = Router()
 
     @comings_router.message(Command(bot_commands.add_expense))

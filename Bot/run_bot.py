@@ -1,7 +1,7 @@
 from aiogram import Dispatcher, Bot
 
 from Bot.commands import get_all_commands
-from .Routers import create_expenses_router, create_start_router
+from .Routers import create_expenses_router, create_comings_router, create_start_router
 
 
 async def setup_routers(dp: Dispatcher, bot: Bot):
@@ -13,5 +13,6 @@ async def setup_routers(dp: Dispatcher, bot: Bot):
     expensesRouter = create_expenses_router(bot)
     dp.include_router(expensesRouter)
 
-    # dp.include_router(comingsRouter)
+    comingsRouter = create_comings_router(bot)
+    dp.include_router(comingsRouter)
 

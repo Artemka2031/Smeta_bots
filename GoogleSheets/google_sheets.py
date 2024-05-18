@@ -213,7 +213,7 @@ class GoogleSheets:
         # Извлекаем числовое значение из ячейки и суммируем с переданным значением
         current_value = cell.value or "0"
         current_value = current_value.replace("\xa0", "").replace(" ", "").replace(",", ".").replace("₽", "")
-        current_value = float(current_value)
+        current_value = float(current_value) if current_value != '' else float(0)
         new_value = current_value + float(amount)
         new_value = f"{new_value:.2f}".replace('.', ',') + ' ₽'
 
@@ -233,7 +233,7 @@ class GoogleSheets:
         # Находим строку по коду раздела и подкатегории
         row_index = await self.find_row_by_type(chapter_code, category_code)
         if row_index is None:
-            raise ValueError(f"Строка для кода {chapter_code} и подкатегории {category_code} не найдена.")
+            raise ValueError(f"Строка для Раздела {chapter_code} и категории {category_code} не найдена.")
 
         # Обновляем ячейку с суммой и комментарием
         await self.update_cell_with_comment(row_index, column_index, amount, comment)
@@ -244,7 +244,7 @@ class GoogleSheets:
 
         # Логируем успешное добавление расхода
         logger.info(
-            f"Расход добавлен: Категория [{chapter_code}], Категория [{section_name}], Подкатегория [{category_name}], "
+            f"Расход добавлен: Раздел [{chapter_code}], Категория [{section_name}], Подкатегория [{category_name}], "
             f"Дата [{date}], Сумма [{amount}₽], Комментарий [{comment}].")
 
     async def remove_expense(self, chapter_code, category_code, date, amount, comment):
@@ -279,6 +279,59 @@ class GoogleSheets:
         # Логируем успешное удаление расхода
         logger.info(
             f"Расход удален: Раздел [{chapter_code}], Категория [{category_code}], "
+            f"Дата [{date}], Сумма [{amount}₽], Комментарий [{comment}].")
+
+    async def update_coming_with_comment(self, chapter_code, coming_code, date, amount, comment):
+        # Находим столбец по дате
+        column_index = await self.find_column_by_date(date)
+        if column_index is None:
+            raise ValueError(f"Столбец с датой {date} не найден.")
+
+        # Находим строку по коду раздела и подкатегории
+        row_index = await self.find_row_by_type(chapter_code, coming_code)
+        if row_index is None:
+            raise ValueError(f"Строка для Раздела {chapter_code} и категории {coming_code} не найдена.")
+
+        # Обновляем ячейку с суммой и комментарием
+        await self.update_cell_with_comment(row_index, column_index, amount, comment)
+
+        # Логируем успешное добавление расхода
+        logger.info(
+            f"Приход добавлен: Раздел [{chapter_code}], Категория [{coming_code}],"
+            f"Дата [{date}], Сумма [{amount}₽], Комментарий [{comment}].")
+
+    async def remove_coming(self, chapter_code, category_code, date, amount, comment):
+        # Находим столбец по дате
+        column_index = await self.find_column_by_date(date)
+        if column_index is None:
+            raise ValueError(f"Столбец с датой {date} не найден.")
+
+        # Находим строку по коду раздела и подкатегории
+        row_index = await self.find_row_by_type(chapter_code, category_code)
+        if row_index is None:
+            raise ValueError(f"Строка для кода {chapter_code} и подкатегории {category_code} не найдена.")
+
+        # Получаем ячейку
+        cell = self.ws.cell((row_index, column_index))
+
+        # Изменяем значение в ячейке
+        current_value = cell.value or "0"
+        current_value = current_value.replace("\xa0", "").replace(" ", "").replace(",", ".").replace("₽", "")
+        current_value = float(current_value)
+        new_value = current_value - float(amount)
+        new_value = f"{new_value:.2f}".replace('.', ',') + ' ₽' if new_value else ""
+
+        self.ws.update_value((row_index, column_index), new_value)
+
+        # Удаляем комментарий
+        current_comment = cell.note or ""
+        if comment in current_comment:
+            new_comment = current_comment.replace(comment, "").strip()
+            cell.note = new_comment
+
+        # Логируем успешное удаление расхода
+        logger.info(
+            f"Приход удален: Раздел [{chapter_code}], Категория [{category_code}], "
             f"Дата [{date}], Сумма [{amount}₽], Комментарий [{comment}].")
 
     async def get_all_creditors(self):

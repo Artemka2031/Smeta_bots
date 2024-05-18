@@ -7,6 +7,7 @@ class Coming(StatesGroup):
     date = State()
 
     coming_message_id = State()
+    chapter_code = State()
     coming_code = State()
 
     amount_message_id = State()
@@ -14,3 +15,5 @@ class Coming(StatesGroup):
 
     comment_message_id = State()
     comment = State()
+
+    delete_coming = State()

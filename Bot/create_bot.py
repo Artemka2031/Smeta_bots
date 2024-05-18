@@ -4,7 +4,7 @@ from aiogram import Bot
 from aiogram.enums import ParseMode
 from peewee import SqliteDatabase
 
-from Database.db_base import Expense
+from Database.db_base import Expense, Coming
 from GoogleSheets import GoogleSheets
 from .commands import BotCommands
 
@@ -19,6 +19,7 @@ class ProjectBot(Bot):
 
         # Привязка модели Expense к базе данных
         Expense._meta.database = self.database
+        Coming._meta.database = self.database
 
         if google_sheet_path:
             # Здесь должна быть логика инициализации Google Sheets, если это необходимо
@@ -27,7 +28,7 @@ class ProjectBot(Bot):
         # Создание таблиц в базе данных, если они ещё не созданы
         if self.database:
             self.database.connect()
-            self.database.create_tables([Expense], safe=True)
+            self.database.create_tables([Expense, Coming], safe=True)
 
     @staticmethod
     async def record_expense_operation(chapter_code, category_code_to_use, date, amount, comment):
@@ -47,6 +48,25 @@ class ProjectBot(Bot):
             return expense_entry.id
         except Exception as e:
             logging.error(f"Ошибка при добавлении расхода в базу данных: {e}")
+
+    @staticmethod
+    async def record_coming_operation(chapter_code, coming_code, date, amount, comment):
+        """
+        Сохранение информации о приходной операции в базу данных.
+        """
+        try:
+            coming_entry = Coming.create(
+                date=date,
+                chapter_code=chapter_code,
+                coming_code=coming_code,
+                amount=amount,
+                comment=comment
+            )
+            coming_entry.save()
+            logging.info(f"Приход успешно добавлен в базу данных c ID {coming_entry.id}")
+            return coming_entry.id
+        except Exception as e:
+            logging.error(f"Ошибка при добавлении прихода в базу данных: {e}")
 
     @staticmethod
     async def record_debt_repayment(creditor, date, amount, comment):
@@ -98,6 +118,16 @@ class ProjectBot(Bot):
             logging.error(f"Запись с ID {operation_id} не найдена.")
             return None
         return expense
+
+    async def get_coming_by_id(self, operation_id):
+        """
+        Получение данных о приходе по id операции.
+        """
+        coming = Coming.get_or_none(Coming.id == operation_id)
+        if not coming:
+            logging.error(f"Запись с ID {operation_id} не найдена.")
+            return None
+        return coming
 
 
 def set_commands(commands: BotCommands):

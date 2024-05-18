@@ -3,7 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from Bot.Filters.check_date import CheckDate
-from Bot.Keyboards.Operations.category import TodayCallback
+from Bot.Keyboards.Operations.category import TodayCallback, chapters_choose_kb
 from Bot.Keyboards.Operations.wallet import create_wallet_keyboard
 from Bot.Routers.AddComing.coming_state_class import Coming
 from Bot.create_bot import ProjectBot
@@ -35,7 +35,7 @@ def create_date_router(bot: ProjectBot):
         coming_message = await query.message.edit_text(text=f"Выберите категорию прихода:",
                                                        reply_markup=chapters_choose_kb(coming))
         await state.update_data(coming_message_id=coming_message.message_id)
-        await state.set_state(Coming.coming_code)
+        await state.set_state(Coming.chapter_code)
 
 
     @date_router.message(Coming.date, CheckDate(F.text))
@@ -76,9 +76,9 @@ def create_date_router(bot: ProjectBot):
 
         coming = await bot.google_sheets.get_coming()
 
-        coming_message = await query.message.edit_text(text=f"Выберите категорию прихода:",
-                                                       reply_markup=chapters_choose_kb(coming))
+        coming_message = await message.edit_text(text=f"Выберите категорию прихода:",
+                                                 reply_markup=chapters_choose_kb(coming))
         await state.update_data(coming_message_id=coming_message.message_id)
-        await state.set_state(Coming.coming_code)
+        await state.set_state(Coming.chapter_code)
 
     return date_router
