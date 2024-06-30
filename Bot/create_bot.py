@@ -10,10 +10,12 @@ from .commands import BotCommands
 
 
 class ProjectBot(Bot):
-    def __init__(self, token, google_sheet_path=None, database_path=None):
+    def __init__(self, token,  project_name, google_sheet_path=None, database_path=None):
         super().__init__(token, parse_mode=ParseMode.HTML)
         if google_sheet_path:
             self.google_sheets = GoogleSheets(google_sheet_path)
+            self.project_name = project_name
+            self.logger = self.setup_logging()
 
         self.database = SqliteDatabase(database_path) if database_path else None
 
@@ -29,6 +31,15 @@ class ProjectBot(Bot):
         if self.database:
             self.database.connect()
             self.database.create_tables([Expense, Coming], safe=True)
+
+    def setup_logging(self):
+        logger = logging.getLogger(self.project_name)
+        logger.setLevel(logging.INFO)
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - [%(project_name)s] - %(message)s')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        return logger
 
     @staticmethod
     async def record_expense_operation(chapter_code, category_code_to_use, date, amount, comment):

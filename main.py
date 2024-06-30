@@ -7,15 +7,14 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from Bot.create_bot import ProjectBot
 from Bot.run_bot import setup_routers
 from config import projects
-from logger import setup_logging
 
 
 # Создание и настройка экземпляра бота
-async def create_bot_instance(token, google_sheet_url, database_path):
-    logger = logging.getLogger(__name__)
-    logger.info(f"Инициализация бота с токеном {token}, Google Sheet {google_sheet_url} и базой данных {database_path}")
+async def create_bot_instance(project):
+    logger = logging.getLogger(project['name'])
+    logger.info(f"Инициализация бота с токеном {project['token']}, Google Sheet {project['url']} и базой данных {project['db']}")
 
-    bot = ProjectBot(token=token, google_sheet_path=google_sheet_url, database_path=database_path)
+    bot = ProjectBot(token=project['token'], project_name=project['name'], google_sheet_path=project['url'], database_path=project['db'])
     storage = MemoryStorage()
     dp = Dispatcher(bot=bot, storage=storage)
 
@@ -26,22 +25,22 @@ async def create_bot_instance(token, google_sheet_url, database_path):
 
 
 # Запуск бота
-async def run_bot(token, google_sheet_url, database_path):
-    logger = logging.getLogger(__name__)
-    logger.info(f"Запуск бота с Google Sheet {google_sheet_url} и базой данных {database_path}")
+async def run_bot(project):
+    logger = logging.getLogger(project['name'])
+    logger.info(f"Запуск бота '{project['name']}'")
 
-    dp, bot = await create_bot_instance(token, google_sheet_url, database_path)
+    dp, bot = await create_bot_instance(project)
     await dp.start_polling(bot)
 
 
 # Основная функция для запуска всех ботов
 async def main():
-    logger = setup_logging()
+    logger = logging.getLogger(__name__)
     logger.info("Запуск основной функции")
 
-    logger.info(f"Запуск ботов с конфигурациями: {projects}")
+    logger.info(f"Запуск ботов")
 
-    tasks = [run_bot(project['token'], project['url'], project['db']) for project in projects]
+    tasks = [run_bot(project) for project in projects]
     await asyncio.gather(*tasks)
 
 

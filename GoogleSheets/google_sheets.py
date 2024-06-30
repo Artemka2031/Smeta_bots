@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pygsheets
 
-cred_path = Path("P:/PythonProjects/Smeta_bots") / "GoogleSheets" / "creds.json"
+cred_path = Path("/root/SmetaProject2024") / "GoogleSheets" / "creds.json"
 
 # Настройка логгера
 logger = logging.getLogger(__name__)

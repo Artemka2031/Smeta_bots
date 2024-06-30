@@ -93,13 +93,13 @@ def create_comment_router(bot: ProjectBot):
             saving_amount = round(amount * (1 - coefficient)) if coefficient != 1 else 0
 
             # Записываем расход
-            await bot.google_sheets.update_expense_with_comment(chapter_code, category_code_to_use, date, amount,
+            await bot.google_sheets.update_expense_with_comment(chapter_code, category_code_to_use, date, amount*coefficient,
                                                                 comment)
 
             # Записываем долг
             await bot.google_sheets.record_borrowing(creditor, date, borrowing_amount, comment)
 
-            operation_id = await bot.record_operation(date, creditor, chapter_code, category_code_to_use, amount,
+            operation_id = await bot.record_operation(date, creditor, chapter_code, category_code_to_use, amount*coefficient,
                                                       coefficient, comment)
 
             # Записываем экономию, если есть
@@ -160,9 +160,9 @@ def create_comment_router(bot: ProjectBot):
             await bot.google_sheets.remove_expense(expense.chapter_code, expense.category_code_to_use, expense.date,
                                                    expense.amount, expense.comment)
             await bot.google_sheets.remove_borrowing(expense.creditor, expense.date,
-                                                     expense.amount * expense.coefficient, expense.comment)
+                                                     expense.amount, expense.comment)
             if expense.coefficient != 1:
-                saving_amount = round(expense.amount * (1 - expense.coefficient))
+                saving_amount = round((expense.amount / expense.coefficient) * (1 - expense.coefficient))
                 await bot.google_sheets.remove_saving(expense.creditor, expense.date, saving_amount, expense.comment)
         elif expense.creditor:
             await bot.google_sheets.remove_repayment(expense.creditor, expense.date, expense.amount, expense.comment)
