@@ -34,4 +34,26 @@ projects = [
           "url": "https://docs.google.com/spreadsheets/d/1S98s9mpi_DE9XxK6siw7vBeKNOWwXIxzy_-uv3geNxI",
           "db": "/root/SmetaProject2024/Data/lavriki.db"
      },
+     #Аварийные работы Школьаня
+     {
+	    "name":"Аварийные работы Школьаня",
+	    "token": "7411461624:AAGROwbw3w-Eh7nb1UcTRPyPGmABzB_AbXI",
+	    "url": "https://docs.google.com/spreadsheets/d/1PrmpR380C_-OCwsrLRWanV_OmMglWxteY0nVykCX8qA",
+        "db": "/root/SmetaProject2024/Data/Shkolnaya.db"
+     },
+     #Янино 2-ая перекладка кирпича
+     {
+	    "name":"Янино 2-ая перекладка кирпича",
+	    "token": "6031682099:AAE_32LYrCyRj0fwxMozqOX6ptHrHxp6ZPA",
+	    "url": "https://docs.google.com/spreadsheets/d/1zCZ_aiNAbng1mhtOdBCxr8WfHC2EMFhd_ZhzgAdGtwI",
+        "db": "/root/SmetaProject2024/Data/Yanino_second.db"
+     },
+     #УК-36 Пулковское шоссе
+     {
+	    "name":"УК-36 Пулковское шоссе",
+	    "token": "6910553886:AAGlEliEdjoFVuMnbXPq8HG34jgTG1bA3KM",
+	    "url": "https://docs.google.com/spreadsheets/d/1h6810dwctl2TbeFRVLxWoyKusUeZZmpfJXJ8wBTD2V0",
+        "db": "/root/SmetaProject2024/Data/Pulkovskoe_shosse.db"
+     }
 ]
+
