@@ -17,9 +17,9 @@ def create_category_router(bot: ProjectBot):
 
         chapter_code = callback_data.chapter_code
         await state.update_data(chapter_code=chapter_code)
-        chapter_name = await bot.google_sheets.get_chapter_name(chapter_code)
+        chapter_name = bot.google_sheets.get_chapter_name(chapter_code)
 
-        categories = await bot.google_sheets.get_categories(chapter_code)
+        categories = bot.google_sheets.get_categories(chapter_code)
 
         try:
             await query.message.edit_text(text=f'Выбран раздел "{chapter_name}". \nВыберите категорию:',
@@ -33,7 +33,7 @@ def create_category_router(bot: ProjectBot):
     async def back_to_chapters(query: CallbackQuery, state: FSMContext):
         await query.answer()
 
-        chapters = await bot.google_sheets.get_chapters()
+        chapters = bot.google_sheets.get_chapters()
         await query.message.edit_text(text="Выберите раздел:", reply_markup=chapters_choose_kb(chapters))
         await state.set_state(Expense.chapter_code)
 
@@ -43,13 +43,13 @@ def create_category_router(bot: ProjectBot):
 
         chapter_code = (await state.get_data())["chapter_code"]
         category_code = callback_data.category_code
-        category_name = await bot.google_sheets.get_category_name(chapter_code, callback_data.category_code)
+        category_name = bot.google_sheets.get_category_name(chapter_code, callback_data.category_code)
 
         # Обновляем состояние с выбранной категорией
         await state.update_data(category_code=category_code)
 
         # Проверяем, есть ли подкатегории у выбранной категории
-        subcategories = await bot.google_sheets.get_subcategories(chapter_code, category_code)
+        subcategories = bot.google_sheets.get_subcategories(chapter_code, category_code)
 
         if subcategories:
             # Если есть подкатегории, переходим к выбору подкатегории
@@ -72,7 +72,7 @@ def create_category_router(bot: ProjectBot):
         chapter_code = data['chapter_code']
 
         # Получаем список категорий из Google Sheets для данного раздела
-        categories = await bot.google_sheets.get_categories(chapter_code)
+        categories = bot.google_sheets.get_categories(chapter_code)
 
         await query.message.edit_text(text="Выберите категорию:", reply_markup=category_choose_kb(categories))
         await state.set_state(Expense.category_code)
@@ -86,7 +86,7 @@ def create_category_router(bot: ProjectBot):
         category_code = data['category_code']
 
         subcategory_code = callback_data.subcategory_code
-        subcategory_name = await bot.google_sheets.get_subcategory_name(chapter_code, category_code, subcategory_code)
+        subcategory_name = bot.google_sheets.get_subcategory_name(chapter_code, category_code, subcategory_code)
 
         # Обновляем состояние с выбранной подкатегорией
         await state.update_data(subcategory_code=subcategory_code)
@@ -101,7 +101,7 @@ def create_category_router(bot: ProjectBot):
         await query.answer()
 
         # Получаем список разделов из Google Sheets
-        chapters = await bot.google_sheets.get_chapters()
+        chapters = bot.google_sheets.get_chapters()
         await query.message.edit_text(text="Выберите раздел:", reply_markup=chapters_choose_kb(chapters))
         await state.set_state(Expense.chapter_code)
 

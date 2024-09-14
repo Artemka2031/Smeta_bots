@@ -10,7 +10,7 @@ from .commands import BotCommands
 
 
 class ProjectBot(Bot):
-    def __init__(self, token,  project_name, google_sheet_path=None, database_path=None):
+    def __init__(self, token, project_name, google_sheet_path=None, database_path=None):
         super().__init__(token, parse_mode=ParseMode.HTML)
         if google_sheet_path:
             self.google_sheets = GoogleSheets(google_sheet_path)
@@ -39,6 +39,11 @@ class ProjectBot(Bot):
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - [%(project_name)s] - %(message)s')
         handler.setFormatter(formatter)
         logger.addHandler(handler)
+
+        # Добавляем project_name в LogRecord
+        extra = {'project_name': self.project_name}
+        logger = logging.LoggerAdapter(logger, extra)
+
         return logger
 
     @staticmethod

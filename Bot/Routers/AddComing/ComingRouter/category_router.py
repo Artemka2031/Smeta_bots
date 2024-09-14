@@ -18,7 +18,7 @@ def create_category_router(bot: ProjectBot):
         chapter_code = callback_data.chapter_code
         await state.update_data(chapter_code=chapter_code)
 
-        categories = await bot.google_sheets.get_categories(chapter_code)
+        categories = bot.google_sheets.get_categories(chapter_code)
 
         try:
             await query.message.edit_text(text=f'Выберите кошелёк прихода:',
@@ -32,7 +32,7 @@ def create_category_router(bot: ProjectBot):
     async def back_to_chapters(query: CallbackQuery, state: FSMContext):
         await query.answer()
 
-        chapters = await bot.google_sheets.get_chapters()
+        chapters = bot.google_sheets.get_chapters()
         await query.message.edit_text(text="Выберите раздел:", reply_markup=chapters_choose_kb(chapters))
         await state.set_state(Coming.chapter_code)
 
@@ -42,7 +42,7 @@ def create_category_router(bot: ProjectBot):
 
         chapter_code = (await state.get_data())["chapter_code"]
         coming_code = callback_data.category_code
-        category_name = await bot.google_sheets.get_category_name(chapter_code, callback_data.category_code)
+        category_name = bot.google_sheets.get_category_name(chapter_code, callback_data.category_code)
 
         # Обновляем состояние с выбранной категорией
         await state.update_data(coming_code=coming_code)

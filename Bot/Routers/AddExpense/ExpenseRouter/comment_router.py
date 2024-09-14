@@ -54,13 +54,13 @@ def create_comment_router(bot: ProjectBot):
 
             processing_message = await bot.send_message(chat_id=chat_id, text="Идет процесс добавления расхода...")
 
-            category_name = await bot.google_sheets.get_category_name(chapter_code, category_code)
-            subcategory_name = await bot.google_sheets.get_subcategory_name(chapter_code, category_code,
+            category_name = bot.google_sheets.get_category_name(chapter_code, category_code)
+            subcategory_name = bot.google_sheets.get_subcategory_name(chapter_code, category_code,
                                                                             subcategory_code) if subcategory_code else ""
             category_name_to_use = subcategory_name or category_name
             category_code_to_use = subcategory_code or category_code
 
-            await bot.google_sheets.update_expense_with_comment(chapter_code, category_code_to_use, date, amount,
+            bot.google_sheets.update_expense_with_comment(chapter_code, category_code_to_use, date, amount,
                                                                 comment)
 
             operation_id = await bot.record_expense_operation(chapter_code, category_code_to_use, date, amount, comment)
@@ -82,8 +82,8 @@ def create_comment_router(bot: ProjectBot):
             processing_message = await bot.send_message(chat_id=chat_id,
                                                         text="Идет процесс добавления записи о долге и расходе...")
 
-            category_name = await bot.google_sheets.get_category_name(chapter_code, category_code)
-            subcategory_name = await bot.google_sheets.get_subcategory_name(chapter_code, category_code,
+            category_name = bot.google_sheets.get_category_name(chapter_code, category_code)
+            subcategory_name = bot.google_sheets.get_subcategory_name(chapter_code, category_code,
                                                                             subcategory_code) if subcategory_code else ""
             category_name_to_use = subcategory_name or category_name
             category_code_to_use = subcategory_code or category_code
@@ -93,18 +93,18 @@ def create_comment_router(bot: ProjectBot):
             saving_amount = round(amount * (1 - coefficient)) if coefficient != 1 else 0
 
             # Записываем расход
-            await bot.google_sheets.update_expense_with_comment(chapter_code, category_code_to_use, date, amount*coefficient,
+            bot.google_sheets.update_expense_with_comment(chapter_code, category_code_to_use, date, amount*coefficient,
                                                                 comment)
 
             # Записываем долг
-            await bot.google_sheets.record_borrowing(creditor, date, borrowing_amount, comment)
+            bot.google_sheets.record_borrowing(creditor, date, borrowing_amount, comment)
 
             operation_id = await bot.record_operation(date, creditor, chapter_code, category_code_to_use, amount*coefficient,
                                                       coefficient, comment)
 
             # Записываем экономию, если есть
             if saving_amount > 0:
-                await bot.google_sheets.record_saving(creditor, date, saving_amount, comment)
+                bot.google_sheets.record_saving(creditor, date, saving_amount, comment)
 
             # Отправляем сообщение об успешной операции
             await bot.edit_message_text(chat_id=chat_id, message_id=processing_message.message_id,
@@ -123,7 +123,7 @@ def create_comment_router(bot: ProjectBot):
             creditor = data["creditor"]
             processing_message = await bot.send_message(chat_id=chat_id, text="Идет процесс возврата долга...")
 
-            await bot.google_sheets.record_repayment(creditor, date, amount, comment)
+            bot.google_sheets.record_repayment(creditor, date, amount, comment)
             operation_id = await bot.record_debt_repayment(creditor, date, amount, comment)
 
             await bot.edit_message_text(chat_id=chat_id, message_id=processing_message.message_id,
@@ -157,17 +157,17 @@ def create_comment_router(bot: ProjectBot):
         # Удаление записи в зависимости от наличия данных о кредиторе и категории
         if expense.creditor and expense.chapter_code:
             # Удаляем запись о расходе, взятом долге и экономии, если коэффициент не равен 1
-            await bot.google_sheets.remove_expense(expense.chapter_code, expense.category_code_to_use, expense.date,
+            bot.google_sheets.remove_expense(expense.chapter_code, expense.category_code_to_use, expense.date,
                                                    expense.amount, expense.comment)
-            await bot.google_sheets.remove_borrowing(expense.creditor, expense.date,
+            bot.google_sheets.remove_borrowing(expense.creditor, expense.date,
                                                      expense.amount, expense.comment)
             if expense.coefficient != 1:
                 saving_amount = round((expense.amount / expense.coefficient) * (1 - expense.coefficient))
-                await bot.google_sheets.remove_saving(expense.creditor, expense.date, saving_amount, expense.comment)
+                bot.google_sheets.remove_saving(expense.creditor, expense.date, saving_amount, expense.comment)
         elif expense.creditor:
-            await bot.google_sheets.remove_repayment(expense.creditor, expense.date, expense.amount, expense.comment)
+            bot.google_sheets.remove_repayment(expense.creditor, expense.date, expense.amount, expense.comment)
         else:
-            await bot.google_sheets.remove_expense(expense.chapter_code, expense.category_code_to_use, expense.date,
+            bot.google_sheets.remove_expense(expense.chapter_code, expense.category_code_to_use, expense.date,
                                                    expense.amount, expense.comment)
 
         # Удаление записи из базы данных

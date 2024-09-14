@@ -52,7 +52,7 @@ def create_comment_router(bot: ProjectBot):
 
         processing_message = await bot.send_message(chat_id=chat_id, text="Идет процесс добавления прихода...")
 
-        await bot.google_sheets.update_coming_with_comment(chapter_code, coming_code, date, amount,
+        bot.google_sheets.update_coming_with_comment(chapter_code, coming_code, date, amount,
                                                            comment)
 
         operation_id = await bot.record_coming_operation(chapter_code, coming_code, date, amount, comment)
@@ -84,7 +84,7 @@ def create_comment_router(bot: ProjectBot):
 
         coming = await bot.get_coming_by_id(operation_id)
 
-        await bot.google_sheets.remove_coming(coming.chapter_code, coming.coming_code, coming.date,
+        bot.google_sheets.remove_coming(coming.chapter_code, coming.coming_code, coming.date,
                                               coming.amount, coming.comment)
 
         # Удаление записи из базы данных

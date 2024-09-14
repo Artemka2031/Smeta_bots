@@ -5,6 +5,7 @@ from pathlib import Path
 import pygsheets
 
 cred_path = Path("/root/SmetaProject2024") / "GoogleSheets" / "creds.json"
+# cred_path = Path("P:/PythonProjects/Smeta_bots") / "GoogleSheets" / "creds.json"
 
 # Настройка логгера
 logger = logging.getLogger(__name__)
@@ -17,7 +18,7 @@ class GoogleSheets:
         self.sh = self.client.open_by_url(spreadsheet_url)
         self.ws = self.sh.worksheet_by_title("Общая таблица")
 
-    async def get_chapters(self):
+    def get_chapters(self):
         # Извлечение значений из столбца B
         chapter_codes = self.ws.get_col(2, include_tailing_empty=False)
         # Извлечение значений из столбца C
@@ -33,7 +34,7 @@ class GoogleSheets:
 
         return chapters
 
-    async def get_coming(self):
+    def get_coming(self):
         # Извлечение значений из столбца B
         coming_codes = self.ws.get_col(2, include_tailing_empty=False)
         # Извлечение значений из столбца C
@@ -49,12 +50,12 @@ class GoogleSheets:
 
         return coming
 
-    async def get_chapter_name(self, chapter_code):
-        chapters = await self.get_chapters()
+    def get_chapter_name(self, chapter_code):
+        chapters = self.get_chapters()
 
         return chapters.get(chapter_code)
 
-    async def get_categories(self, chapter_code):
+    def get_categories(self, chapter_code):
         codes = self.ws.get_col(2, include_tailing_empty=False)
         names = self.ws.get_col(3, include_tailing_empty=False)
 
@@ -69,7 +70,7 @@ class GoogleSheets:
 
         return categories
 
-    async def get_category_name(self, chapter_code, category_code):
+    def get_category_name(self, chapter_code, category_code):
         codes = self.ws.get_col(2, include_tailing_empty=False)
         names = self.ws.get_col(3, include_tailing_empty=False)
 
@@ -86,7 +87,7 @@ class GoogleSheets:
 
         return category_name
 
-    async def get_subcategories(self, section_code, category_code):
+    def get_subcategories(self, section_code, category_code):
         # Получаем все значения из столбца B и C
         codes = self.ws.get_col(2, include_tailing_empty=False)
         names = self.ws.get_col(3, include_tailing_empty=False)
@@ -125,7 +126,7 @@ class GoogleSheets:
 
         return subcategories
 
-    async def get_subcategory_name(self, chapter_code, category_code, subcategory_code):
+    def get_subcategory_name(self, chapter_code, category_code, subcategory_code):
         codes = self.ws.get_col(2, include_tailing_empty=False)
         names = self.ws.get_col(3, include_tailing_empty=False)
 
@@ -157,7 +158,7 @@ class GoogleSheets:
 
         return subcategory_name
 
-    async def find_column_by_date(self, date):
+    def find_column_by_date(self, date):
         """
         Найти столбец по дате в формате дд.мм.гггг.
         """
@@ -173,7 +174,7 @@ class GoogleSheets:
         # Если столбец с датой не найден, возвращаем None
         return None
 
-    async def find_row_by_type(self, section_code, type_code):
+    def find_row_by_type(self, section_code, type_code):
         # Получаем все значения из столбца B
         all_codes = self.ws.get_col(2, include_tailing_empty=False)
 
@@ -196,7 +197,7 @@ class GoogleSheets:
 
         raise ValueError(f"Тип с кодом {type_code} не найден в разделе {section_code}.")
 
-    async def update_cell_with_comment(self, row_index, column_index, amount, comment):
+    def update_cell_with_comment(self, row_index, column_index, amount, comment):
         # Получаем ячейку
         cell = self.ws.cell((row_index, column_index))
 
@@ -224,19 +225,19 @@ class GoogleSheets:
         logger.info(f"Обновление ячейки: Ряд [{row_index}], Столбец [{column_index}], "
                     f"Сумма [{amount}₽], Комментарий [{comment}]. Ячейка [{cell.label}].")
 
-    async def update_expense_with_comment(self, chapter_code, category_code, date, amount, comment):
+    def update_expense_with_comment(self, chapter_code, category_code, date, amount, comment):
         # Находим столбец по дате
-        column_index = await self.find_column_by_date(date)
+        column_index = self.find_column_by_date(date)
         if column_index is None:
             raise ValueError(f"Столбец с датой {date} не найден.")
 
         # Находим строку по коду раздела и подкатегории
-        row_index = await self.find_row_by_type(chapter_code, category_code)
+        row_index = self.find_row_by_type(chapter_code, category_code)
         if row_index is None:
             raise ValueError(f"Строка для Раздела {chapter_code} и категории {category_code} не найдена.")
 
         # Обновляем ячейку с суммой и комментарием
-        await self.update_cell_with_comment(row_index, column_index, amount, comment)
+        self.update_cell_with_comment(row_index, column_index, amount, comment)
 
         # Получаем названия раздела и категории для логирования
         section_name = self.ws.cell((row_index - 1, 3)).value.split(':', 1)[-1].strip()
@@ -247,14 +248,14 @@ class GoogleSheets:
             f"Расход добавлен: Раздел [{chapter_code}], Категория [{section_name}], Подкатегория [{category_name}], "
             f"Дата [{date}], Сумма [{amount}₽], Комментарий [{comment}].")
 
-    async def remove_expense(self, chapter_code, category_code, date, amount, comment):
+    def remove_expense(self, chapter_code, category_code, date, amount, comment):
         # Находим столбец по дате
-        column_index = await self.find_column_by_date(date)
+        column_index = self.find_column_by_date(date)
         if column_index is None:
             raise ValueError(f"Столбец с датой {date} не найден.")
 
         # Находим строку по коду раздела и подкатегории
-        row_index = await self.find_row_by_type(chapter_code, category_code)
+        row_index = self.find_row_by_type(chapter_code, category_code)
         if row_index is None:
             raise ValueError(f"Строка для кода {chapter_code} и подкатегории {category_code} не найдена.")
 
@@ -281,33 +282,33 @@ class GoogleSheets:
             f"Расход удален: Раздел [{chapter_code}], Категория [{category_code}], "
             f"Дата [{date}], Сумма [{amount}₽], Комментарий [{comment}].")
 
-    async def update_coming_with_comment(self, chapter_code, coming_code, date, amount, comment):
+    def update_coming_with_comment(self, chapter_code, coming_code, date, amount, comment):
         # Находим столбец по дате
-        column_index = await self.find_column_by_date(date)
+        column_index = self.find_column_by_date(date)
         if column_index is None:
             raise ValueError(f"Столбец с датой {date} не найден.")
 
         # Находим строку по коду раздела и подкатегории
-        row_index = await self.find_row_by_type(chapter_code, coming_code)
+        row_index = self.find_row_by_type(chapter_code, coming_code)
         if row_index is None:
             raise ValueError(f"Строка для Раздела {chapter_code} и категории {coming_code} не найдена.")
 
         # Обновляем ячейку с суммой и комментарием
-        await self.update_cell_with_comment(row_index, column_index, amount, comment)
+        self.update_cell_with_comment(row_index, column_index, amount, comment)
 
         # Логируем успешное добавление расхода
         logger.info(
             f"Приход добавлен: Раздел [{chapter_code}], Категория [{coming_code}],"
             f"Дата [{date}], Сумма [{amount}₽], Комментарий [{comment}].")
 
-    async def remove_coming(self, chapter_code, category_code, date, amount, comment):
+    def remove_coming(self, chapter_code, category_code, date, amount, comment):
         # Находим столбец по дате
-        column_index = await self.find_column_by_date(date)
+        column_index = self.find_column_by_date(date)
         if column_index is None:
             raise ValueError(f"Столбец с датой {date} не найден.")
 
         # Находим строку по коду раздела и подкатегории
-        row_index = await self.find_row_by_type(chapter_code, category_code)
+        row_index = self.find_row_by_type(chapter_code, category_code)
         if row_index is None:
             raise ValueError(f"Строка для кода {chapter_code} и подкатегории {category_code} не найдена.")
 
@@ -334,7 +335,7 @@ class GoogleSheets:
             f"Приход удален: Раздел [{chapter_code}], Категория [{category_code}], "
             f"Дата [{date}], Сумма [{amount}₽], Комментарий [{comment}].")
 
-    async def get_all_creditors(self):
+    def get_all_creditors(self):
         column_b_values = self.ws.get_col(2, include_tailing_empty=False)
         column_c_values = self.ws.get_col(3, include_tailing_empty=False)
 
@@ -353,7 +354,7 @@ class GoogleSheets:
         return [creditor for i, creditor in enumerate(column_c_values[start_index:end_index], start_index) if
                 creditor.strip() and (i - start_index) % 5 == 0]
 
-    async def find_credit_info(self, creditor_name):
+    def find_credit_info(self, creditor_name):
         # Получаем значения из столбца B и C
         column_b_values = self.ws.get_col(2, include_tailing_empty=False)
         column_c_values = self.ws.get_col(3, include_tailing_empty=False)
@@ -378,14 +379,14 @@ class GoogleSheets:
 
         raise ValueError(f"Кредитор {creditor_name} не найден")
 
-    async def record_borrowing(self, creditor_name, date, amount, comment):
+    def record_borrowing(self, creditor_name, date, amount, comment):
         # Находим столбец по дате
-        column_index = await self.find_column_by_date(date)
+        column_index = self.find_column_by_date(date)
         if column_index is None:
             raise ValueError(f"Столбец с датой {date} не найден.")
 
         # Находим строку кредитора
-        row_index = await self.find_credit_info(creditor_name)
+        row_index = self.find_credit_info(creditor_name)
         if row_index is None:
             raise ValueError(f"Кредитор {creditor_name} не найден.")
 
@@ -393,16 +394,16 @@ class GoogleSheets:
         row_index += 1
 
         # Обновление значения и комментария в ячейке
-        await self.update_cell_with_comment(row_index, column_index, amount, f"Кредитные деньги взяты на: {comment}")
+        self.update_cell_with_comment(row_index, column_index, amount, f"Кредитные деньги взяты на: {comment}")
 
-    async def remove_borrowing(self, creditor_name, date, amount, comment):
+    def remove_borrowing(self, creditor_name, date, amount, comment):
         # Находим столбец по дате
-        column_index = await self.find_column_by_date(date)
+        column_index = self.find_column_by_date(date)
         if column_index is None:
             raise ValueError(f"Столбец с датой {date} не найден.")
 
         # Находим строку кредитора
-        row_index = await self.find_credit_info(creditor_name)
+        row_index = self.find_credit_info(creditor_name)
         if row_index is None:
             raise ValueError(f"Кредитор {creditor_name} не найден.")
 
@@ -433,12 +434,12 @@ class GoogleSheets:
             f"Запись о взятии в долг удалена: Кредитор [{creditor_name}], "
             f"Дата [{date}], Сумма [{amount}₽], Комментарий [{comment}].")
 
-    async def record_repayment(self, creditor_name, date, amount, comment):
-        column_index = await self.find_column_by_date(date)
+    def record_repayment(self, creditor_name, date, amount, comment):
+        column_index = self.find_column_by_date(date)
         if column_index is None:
             raise ValueError(f"Столбец с датой {date} не найден.")
 
-        row_index = await self.find_credit_info(creditor_name)
+        row_index = self.find_credit_info(creditor_name)
         if row_index is None:
             raise ValueError(f"Кредитор {creditor_name} не найден.")
 
@@ -446,14 +447,14 @@ class GoogleSheets:
         row_index += 2
 
         # Обновление значения и комментария в ячейке
-        await self.update_cell_with_comment(row_index, column_index, amount, f"Долг возвращён на: {comment}")
+        self.update_cell_with_comment(row_index, column_index, amount, f"Долг возвращён на: {comment}")
 
-    async def remove_repayment(self, creditor_name, date, amount, comment):
-        column_index = await self.find_column_by_date(date)
+    def remove_repayment(self, creditor_name, date, amount, comment):
+        column_index = self.find_column_by_date(date)
         if column_index is None:
             raise ValueError(f"Столбец с датой {date} не найден.")
 
-        row_index = await self.find_credit_info(creditor_name)
+        row_index = self.find_credit_info(creditor_name)
         if row_index is None:
             raise ValueError(f"Кредитор {creditor_name} не найден.")
 
@@ -484,12 +485,12 @@ class GoogleSheets:
             f"Запись о возврате долга удалена: Кредитор [{creditor_name}], "
             f"Дата [{date}], Сумма [{amount}₽], Комментарий [{comment}].")
 
-    async def record_saving(self, creditor_name, date, amount, comment):
-        column_index = await self.find_column_by_date(date)
+    def record_saving(self, creditor_name, date, amount, comment):
+        column_index = self.find_column_by_date(date)
         if column_index is None:
             raise ValueError(f"Столбец с датой {date} не найден.")
 
-        row_index = await self.find_credit_info(creditor_name)
+        row_index = self.find_credit_info(creditor_name)
         if row_index is None:
             raise ValueError(f"Кредитор {creditor_name} не найден.")
 
@@ -497,14 +498,14 @@ class GoogleSheets:
         row_index += 3
 
         # Обновление значения и комментария в ячейке
-        await self.update_cell_with_comment(row_index, column_index, amount, f"Экономия достигнута за счёт: {comment}")
+        self.update_cell_with_comment(row_index, column_index, amount, f"Экономия достигнута за счёт: {comment}")
 
-    async def remove_saving(self, creditor_name, date, amount, comment):
-        column_index = await self.find_column_by_date(date)
+    def remove_saving(self, creditor_name, date, amount, comment):
+        column_index = self.find_column_by_date(date)
         if column_index is None:
             raise ValueError(f"Столбец с датой {date} не найден.")
 
-        row_index = await self.find_credit_info(creditor_name)
+        row_index = self.find_credit_info(creditor_name)
         if row_index is None:
             raise ValueError(f"Кредитор {creditor_name} не найден.")
 
@@ -534,4 +535,3 @@ class GoogleSheets:
         logger.info(
             f"Запись об экономии удалена: Кредитор [{creditor_name}], "
             f"Дата [{date}], Сумма [{amount}₽], Комментарий [{comment}].")
-

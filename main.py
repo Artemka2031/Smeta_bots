@@ -11,10 +11,14 @@ from config import projects
 
 # Создание и настройка экземпляра бота
 async def create_bot_instance(project):
-    logger = logging.getLogger(project['name'])
-    logger.info(f"Инициализация бота с токеном {project['token']}, Google Sheet {project['url']} и базой данных {project['db']}")
+    # Используем logger бота
+    bot = ProjectBot(token=project['token'], project_name=project['name'], google_sheet_path=project['url'],
+                     database_path=project['db'])
+    logger = bot.logger
 
-    bot = ProjectBot(token=project['token'], project_name=project['name'], google_sheet_path=project['url'], database_path=project['db'])
+    logger.info(
+        f"Инициализация бота с токеном {project['token']}, Google Sheet {project['url']} и базой данных {project['db']}")
+
     storage = MemoryStorage()
     dp = Dispatcher(bot=bot, storage=storage)
 
@@ -26,7 +30,9 @@ async def create_bot_instance(project):
 
 # Запуск бота
 async def run_bot(project):
-    logger = logging.getLogger(project['name'])
+    bot = ProjectBot(token=project['token'], project_name=project['name'], google_sheet_path=project['url'],
+                     database_path=project['db'])
+    logger = bot.logger
     logger.info(f"Запуск бота '{project['name']}'")
 
     dp, bot = await create_bot_instance(project)

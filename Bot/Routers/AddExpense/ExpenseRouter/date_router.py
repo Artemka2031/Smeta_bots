@@ -44,7 +44,7 @@ def create_date_router(bot: ProjectBot):
         except:
             incorrect_date_message = await bot.send_message(
                 chat_id=message.chat.id,
-                text="Дата должна быть в формате дд.мм.гггг и не позднее сегодняшнего дня. Повторите:")
+                text="Дата должна быть в формате дд.мм.гг и не позднее сегодняшнего дня. Повторите:")
             incorrect_date_message_id = incorrect_date_message.message_id
             await state.update_data(extra_messages=[incorrect_date_message_id])
 

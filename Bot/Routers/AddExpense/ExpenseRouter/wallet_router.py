@@ -17,7 +17,7 @@ def create_wallet_router(bot: ProjectBot):
         await query.message.edit_text("Выбран кошелек: Проект", reply_markup=None)
         await state.update_data(wallet="Проект")
 
-        chapters = await bot.google_sheets.get_chapters()
+        chapters = bot.google_sheets.get_chapters()
 
         chapter_message = await query.message.edit_text(text=f"Выбран: Проект. \nВыберите раздел:",
                                                         reply_markup=chapters_choose_kb(chapters))
@@ -29,7 +29,7 @@ def create_wallet_router(bot: ProjectBot):
         await query.message.edit_text("Выбран кошелек: Взять в долг", reply_markup=None)
         await state.update_data(wallet="Взять в долг")
 
-        creditors_list = await bot.google_sheets.get_all_creditors()
+        creditors_list = bot.google_sheets.get_all_creditors()
         kb = creditors_keyboard(creditors_list)
 
         await query.message.edit_text("Выберите кредитора:", reply_markup=kb)
@@ -40,7 +40,7 @@ def create_wallet_router(bot: ProjectBot):
         await query.message.edit_text("Выбран кошелек: Вернуть долг", reply_markup=None)
         await state.update_data(wallet="Вернуть долг")
 
-        creditors_list = await bot.google_sheets.get_all_creditors()
+        creditors_list = bot.google_sheets.get_all_creditors()
         kb = creditors_keyboard(creditors_list)
 
         await query.message.edit_text("Выберите кредитора для возврата долга:", reply_markup=kb)
@@ -65,7 +65,7 @@ def create_wallet_router(bot: ProjectBot):
         await query.message.edit_text(f"Выбран кредитор: {creditor}", reply_markup=None)
         await state.update_data(creditor=creditor)
 
-        chapters = await bot.google_sheets.get_chapters()
+        chapters = bot.google_sheets.get_chapters()
 
         chapter_message = await query.message.edit_text(f"Выбран кредитор: {creditor}. \nВыберите раздел:",
                                                         reply_markup=chapters_choose_kb(chapters))

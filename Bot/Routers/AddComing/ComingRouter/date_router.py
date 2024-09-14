@@ -30,7 +30,7 @@ def create_date_router(bot: ProjectBot):
         await query.message.edit_text(f"Выбрана дата: {date}", reply_markup=None)
         await state.update_data(date=date)
 
-        coming = await bot.google_sheets.get_coming()
+        coming = bot.google_sheets.get_coming()
 
         coming_message = await query.message.edit_text(text=f"Выберите категорию прихода:",
                                                        reply_markup=chapters_choose_kb(coming))
@@ -74,7 +74,7 @@ def create_date_router(bot: ProjectBot):
                                     text=f"Выбрана дата: {date}", reply_markup=None)
         await state.update_data(date=date)
 
-        coming = await bot.google_sheets.get_coming()
+        coming = bot.google_sheets.get_coming()
 
         coming_message = await message.edit_text(text=f"Выберите категорию прихода:",
                                                  reply_markup=chapters_choose_kb(coming))
