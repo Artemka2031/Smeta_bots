@@ -16,7 +16,7 @@ class CheckDate(Filter):
             valid_date = time.strptime(self.date, '%d.%m.%y')
 
             # Проверка года
-            if not (2022 <= valid_date.tm_year <= 2030):
+            if not (2022 <= valid_date.tm_year <= 2100):
                 return True  # Год не входит в диапазон от 2022 до 2030
 
             # Преобразование введенной даты в объект datetime
