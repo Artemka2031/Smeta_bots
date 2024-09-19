@@ -4,7 +4,8 @@ from pathlib import Path
 
 import pygsheets
 
-cred_path = Path("P:/Python/Smeta_bots") / "GoogleSheets" / "creds.json"
+cred_path = Path("C:/Users/SMTU_User/PycharmProjects/Smeta_bots/") / "GoogleSheets" / "creds.json"
+# cred_path = Path("P:/Python/Smeta_bots") / "GoogleSheets" / "creds.json"
 # cred_path = Path("P:/PythonProjects/Smeta_bots") / "GoogleSheets" / "creds.json"
 
 logger = logging.getLogger(__name__)

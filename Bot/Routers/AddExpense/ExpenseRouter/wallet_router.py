@@ -17,16 +17,24 @@ def create_wallet_router(bot: ProjectBot):
         await query.message.edit_text("Выбран кошелек: Проект", reply_markup=None)
         await state.update_data(wallet="Проект")
 
+        # Получаем данные из состояния
         data = await state.get_data()
         chapters = data.get('chapters')
 
-        if not chapters:
-            print("No chapters")
-            chapters = bot.google_sheets.get_chapters()
-            await state.update_data(chapters=chapters)
+        # Получаем данные о кодах и именах разделов
+        chapter_code = data.get('column_b_values')  # Коды разделов (столбец B)
+        chapter_name = data.get('column_c_values')  # Названия разделов (столбец C)
 
-        chapter_message = await query.message.edit_text(text=f"Выбран: Проект. \nВыберите раздел:",
-                                                        reply_markup=chapters_choose_kb(chapters))
+        # Если данные о разделах отсутствуют, делаем запрос к Google Sheets
+        if not chapters:
+            chapters = bot.google_sheets.get_chapters(chapter_code, chapter_name)
+            await state.update_data(chapters=chapters)  # Сохраняем главы в состояние
+
+        # Создаем сообщение с выбором раздела
+        chapter_message = await query.message.edit_text(
+            text=f"Выбран: Проект. \nВыберите раздел:",
+            reply_markup=chapters_choose_kb(chapters)
+        )
         await state.update_data(chapter_message_id=chapter_message.message_id)
         await state.set_state(Expense.chapter_code)
 
@@ -35,13 +43,20 @@ def create_wallet_router(bot: ProjectBot):
         await query.message.edit_text("Выбран кошелек: Взять в долг", reply_markup=None)
         await state.update_data(wallet="Взять в долг")
 
+        # Получаем данные из состояния
         data = await state.get_data()
         creditors_list = data.get('creditors_list')
 
+        # Получаем данные о кодах и именах разделов
+        chapter_code = data.get('column_b_values')  # Коды разделов (столбец B)
+        chapter_name = data.get('column_c_values')  # Названия разделов (столбец C)
+
+        # Если данные о кредиторах отсутствуют, загружаем их
         if not creditors_list:
-            creditors_list = bot.google_sheets.get_all_creditors()
+            creditors_list = bot.google_sheets.get_all_creditors(chapter_code, chapter_name)
             await state.update_data(creditors_list=creditors_list)
 
+        # Создаем клавиатуру для выбора кредиторов
         kb = creditors_keyboard(creditors_list)
         await query.message.edit_text("Выберите кредитора:", reply_markup=kb)
         await state.set_state(Expense.creditor_borrow)
@@ -51,13 +66,20 @@ def create_wallet_router(bot: ProjectBot):
         await query.message.edit_text("Выбран кошелек: Вернуть долг", reply_markup=None)
         await state.update_data(wallet="Вернуть долг")
 
+        # Получаем данные из состояния
         data = await state.get_data()
         creditors_list = data.get('creditors_list')
 
+        # Получаем данные о кодах и именах разделов
+        chapter_code = data.get('column_b_values')  # Коды разделов (столбец B)
+        chapter_name = data.get('column_c_values')  # Названия разделов (столбец C)
+
+        # Если данные о кредиторах отсутствуют, загружаем их
         if not creditors_list:
-            creditors_list = bot.google_sheets.get_all_creditors()
+            creditors_list = bot.google_sheets.get_all_creditors(chapter_code, chapter_name)
             await state.update_data(creditors_list=creditors_list)
 
+        # Создаем клавиатуру для выбора кредиторов
         kb = creditors_keyboard(creditors_list)
         await query.message.edit_text("Выберите кредитора для возврата долга:", reply_markup=kb)
         await state.set_state(Expense.creditor_return)
@@ -79,15 +101,24 @@ def create_wallet_router(bot: ProjectBot):
         await query.message.edit_text(f"Выбран кредитор: {creditor}", reply_markup=None)
         await state.update_data(creditor=creditor)
 
+        # Получаем данные из состояния
         data = await state.get_data()
         chapters = data.get('chapters')
 
+        # Получаем данные о кодах и именах разделов
+        chapter_code = data.get('column_b_values')  # Коды разделов (столбец B)
+        chapter_name = data.get('column_c_values')  # Названия разделов (столбец C)
+
+        # Если данные о разделах отсутствуют, загружаем их
         if not chapters:
-            chapters = bot.google_sheets.get_chapters()
+            chapters = bot.google_sheets.get_chapters(chapter_code, chapter_name)
             await state.update_data(chapters=chapters)
 
-        chapter_message = await query.message.edit_text(f"Выбран кредитор: {creditor}. \nВыберите раздел:",
-                                                        reply_markup=chapters_choose_kb(chapters))
+        # Создаем сообщение с выбором раздела
+        chapter_message = await query.message.edit_text(
+            f"Выбран кредитор: {creditor}. \nВыберите раздел:",
+            reply_markup=chapters_choose_kb(chapters)
+        )
         await state.update_data(chapter_message_id=chapter_message.message_id)
         await state.set_state(Expense.chapter_code)
 

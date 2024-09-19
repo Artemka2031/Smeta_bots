@@ -71,9 +71,10 @@ projects = [
     # },
     # Тест нового функцианала
     {
-        "name": "Тест нового функцианала",
+        "name": "Тест нового функционала",
         "token": "6397282799:AAG-kCn6jHua9W9y48L20K_IDM-5kPEY3P0",
         "url": "https://docs.google.com/spreadsheets/d/1ATj6_9W7MeC0AyUtrgQ_ILD0WfF2LM3Nt6pJN09aDt0",
-        "db": "P:/Python/Smeta_bots/Data/Test.db"
+        "db": "C:/Users/SMTU_User/PycharmProjects/Smeta_bots/Data/Test.db"
     }
+
 ]

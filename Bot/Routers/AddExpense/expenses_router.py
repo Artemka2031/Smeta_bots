@@ -26,6 +26,11 @@ def create_expenses_router(bot: ProjectBot):
 
         sheet_data = bot.google_sheets.load_all_data()
 
+        sent_message = await message.answer(
+            text="Выберете дату расхода:",
+            reply_markup=create_today_kb()
+        )
+
         await state.update_data(
             column_b_values=sheet_data['column_b_values'],
             column_c_values=sheet_data['column_c_values'],
@@ -33,10 +38,6 @@ def create_expenses_router(bot: ProjectBot):
             all_rows=sheet_data['all_rows']
         )
 
-        sent_message = await message.answer(
-            text="Выберете дату расхода:",
-            reply_markup=create_today_kb()
-        )
         await state.update_data(date_message_id=sent_message.message_id)
         await state.set_state(Expense.date)
 
