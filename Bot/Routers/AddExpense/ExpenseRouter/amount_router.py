@@ -81,16 +81,13 @@ def create_amount_router(bot: ProjectBot):
         except ValueError:
             await message.delete()
             logger.info("Введено недопустимое значение. Должны быть только числа больше 0. Разделяющий знак = ','")
-            extera_message =await bot.send_message(message.chat.id,
-                                   "Введено недопустимое значение. Должны быть только числа больше 0. Разделяющий знак = ',' ")
+            extera_message = await bot.send_message(message.chat.id,
+                                                    "Введено недопустимое значение. Должны быть только числа больше 0. Разделяющий знак = ',' ")
             extra_messages.append(extera_message.message_id)
             await state.update_data(extra_messages=extra_messages)
 
             await state.set_state(Expense.coefficient)
             return
-
-
-
 
         try:
             for message_id in extra_messages:

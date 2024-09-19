@@ -21,9 +21,22 @@ def create_expenses_router(bot: ProjectBot):
     @expenses_router.message(Command(bot_commands.add_expense))
     @expenses_router.message(F.text.casefold() == "расход ₽")
     async def start_expense_adding(message: Message, state: FSMContext) -> None:
+        # Очищаем текущее состояние
         await state.clear()
-        sent_message = await message.answer(text="Выберете дату расхода:",
-                                            reply_markup=create_today_kb())
+
+        sheet_data = bot.google_sheets.load_all_data()
+
+        await state.update_data(
+            column_b_values=sheet_data['column_b_values'],
+            column_c_values=sheet_data['column_c_values'],
+            dates_row=sheet_data['dates_row'],
+            all_rows=sheet_data['all_rows']
+        )
+
+        sent_message = await message.answer(
+            text="Выберете дату расхода:",
+            reply_markup=create_today_kb()
+        )
         await state.update_data(date_message_id=sent_message.message_id)
         await state.set_state(Expense.date)
 
@@ -35,7 +48,6 @@ def create_expenses_router(bot: ProjectBot):
         await message.delete()
 
         fields_to_check = ["date_message_id", "chapter_message_id", "amount_message_id", "comment_message_id"]
-
         delete_messages = [data[field] for field in fields_to_check if field in data]
 
         extra_messages = data.get("extra_messages", [])
@@ -44,10 +56,10 @@ def create_expenses_router(bot: ProjectBot):
         for message_id in delete_messages:
             await bot(DeleteMessage(chat_id=chat_id, message_id=message_id))
 
+        # Сообщаем об отмене расхода
         await message.answer(text="Расход отменён")
         await state.clear()
 
-    # Добавляем роутеры по работе с датой, категориями, суммой расхода и комментариями
     expenses_router.include_router(create_date_router(bot))
     expenses_router.include_router(create_wallet_router(bot))
     expenses_router.include_router(create_category_router(bot))

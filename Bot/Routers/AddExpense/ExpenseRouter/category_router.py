@@ -17,6 +17,14 @@ def create_category_router(bot: ProjectBot):
 
         chapter_code = callback_data.chapter_code
         await state.update_data(chapter_code=chapter_code)
+
+        data = await state.get_data()
+        chapters = data.get('chapters')
+
+        if not chapters:
+            chapters = bot.google_sheets.get_chapters()
+            await state.update_data(chapters=chapters)
+
         chapter_name = bot.google_sheets.get_chapter_name(chapter_code)
 
         categories = bot.google_sheets.get_categories(chapter_code)
@@ -33,7 +41,13 @@ def create_category_router(bot: ProjectBot):
     async def back_to_chapters(query: CallbackQuery, state: FSMContext):
         await query.answer()
 
-        chapters = bot.google_sheets.get_chapters()
+        data = await state.get_data()
+        chapters = data.get('chapters')
+
+        if not chapters:
+            chapters = bot.google_sheets.get_chapters()
+            await state.update_data(chapters=chapters)
+
         await query.message.edit_text(text="Выберите раздел:", reply_markup=chapters_choose_kb(chapters))
         await state.set_state(Expense.chapter_code)
 
@@ -41,23 +55,20 @@ def create_category_router(bot: ProjectBot):
     async def set_category(query: CallbackQuery, callback_data: ChooseCategoryCallback, state: FSMContext):
         await query.answer()
 
-        chapter_code = (await state.get_data())["chapter_code"]
+        data = await state.get_data()
+        chapter_code = data['chapter_code']
         category_code = callback_data.category_code
-        category_name = bot.google_sheets.get_category_name(chapter_code, callback_data.category_code)
-
-        # Обновляем состояние с выбранной категорией
         await state.update_data(category_code=category_code)
 
-        # Проверяем, есть ли подкатегории у выбранной категории
+        category_name = bot.google_sheets.get_category_name(chapter_code, category_code)
+
         subcategories = bot.google_sheets.get_subcategories(chapter_code, category_code)
 
         if subcategories:
-            # Если есть подкатегории, переходим к выбору подкатегории
             await query.message.edit_text(f"Выбрана категория '{category_name}'. \nВыберите подкатегорию:",
                                           reply_markup=subcategory_choose_kb(subcategories))
             await state.set_state(Expense.subcategory_code)
         else:
-            # Если подкатегорий нет, переходим к вводу суммы расхода
             await query.message.edit_text(f"Выбрана категория '{category_name}'.")
             amount_message = await bot.send_message(chat_id=query.message.chat.id, text="Введите сумму расхода:")
             await state.update_data(amount_message_id=amount_message.message_id)
@@ -67,12 +78,13 @@ def create_category_router(bot: ProjectBot):
     async def back_to_category(query: CallbackQuery, state: FSMContext):
         await query.answer()
 
-        # Получаем код текущего раздела из состояния
         data = await state.get_data()
         chapter_code = data['chapter_code']
 
-        # Получаем список категорий из Google Sheets для данного раздела
-        categories = bot.google_sheets.get_categories(chapter_code)
+        categories = data.get('categories')
+        if not categories:
+            categories = bot.google_sheets.get_categories(chapter_code)
+            await state.update_data(categories=categories)
 
         await query.message.edit_text(text="Выберите категорию:", reply_markup=category_choose_kb(categories))
         await state.set_state(Expense.category_code)
@@ -88,7 +100,6 @@ def create_category_router(bot: ProjectBot):
         subcategory_code = callback_data.subcategory_code
         subcategory_name = bot.google_sheets.get_subcategory_name(chapter_code, category_code, subcategory_code)
 
-        # Обновляем состояние с выбранной подкатегорией
         await state.update_data(subcategory_code=subcategory_code)
 
         await query.message.edit_text(f"Выбрана подкатегория '{subcategory_name}'.")
@@ -100,8 +111,13 @@ def create_category_router(bot: ProjectBot):
     async def back_to_chapters(query: CallbackQuery, state: FSMContext):
         await query.answer()
 
-        # Получаем список разделов из Google Sheets
-        chapters = bot.google_sheets.get_chapters()
+        data = await state.get_data()
+        chapters = data.get('chapters')
+
+        if not chapters:
+            chapters = bot.google_sheets.get_chapters()
+            await state.update_data(chapters=chapters)
+
         await query.message.edit_text(text="Выберите раздел:", reply_markup=chapters_choose_kb(chapters))
         await state.set_state(Expense.chapter_code)
 

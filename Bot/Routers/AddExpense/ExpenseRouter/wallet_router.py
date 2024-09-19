@@ -17,7 +17,13 @@ def create_wallet_router(bot: ProjectBot):
         await query.message.edit_text("Выбран кошелек: Проект", reply_markup=None)
         await state.update_data(wallet="Проект")
 
-        chapters = bot.google_sheets.get_chapters()
+        data = await state.get_data()
+        chapters = data.get('chapters')
+
+        if not chapters:
+            print("No chapters")
+            chapters = bot.google_sheets.get_chapters()
+            await state.update_data(chapters=chapters)
 
         chapter_message = await query.message.edit_text(text=f"Выбран: Проект. \nВыберите раздел:",
                                                         reply_markup=chapters_choose_kb(chapters))
@@ -29,9 +35,14 @@ def create_wallet_router(bot: ProjectBot):
         await query.message.edit_text("Выбран кошелек: Взять в долг", reply_markup=None)
         await state.update_data(wallet="Взять в долг")
 
-        creditors_list = bot.google_sheets.get_all_creditors()
-        kb = creditors_keyboard(creditors_list)
+        data = await state.get_data()
+        creditors_list = data.get('creditors_list')
 
+        if not creditors_list:
+            creditors_list = bot.google_sheets.get_all_creditors()
+            await state.update_data(creditors_list=creditors_list)
+
+        kb = creditors_keyboard(creditors_list)
         await query.message.edit_text("Выберите кредитора:", reply_markup=kb)
         await state.set_state(Expense.creditor_borrow)
 
@@ -40,32 +51,40 @@ def create_wallet_router(bot: ProjectBot):
         await query.message.edit_text("Выбран кошелек: Вернуть долг", reply_markup=None)
         await state.update_data(wallet="Вернуть долг")
 
-        creditors_list = bot.google_sheets.get_all_creditors()
-        kb = creditors_keyboard(creditors_list)
+        data = await state.get_data()
+        creditors_list = data.get('creditors_list')
 
+        if not creditors_list:
+            creditors_list = bot.google_sheets.get_all_creditors()
+            await state.update_data(creditors_list=creditors_list)
+
+        kb = creditors_keyboard(creditors_list)
         await query.message.edit_text("Выберите кредитора для возврата долга:", reply_markup=kb)
         await state.set_state(Expense.creditor_return)
 
-    # Роутер для дивидендов
     @wallet_router.callback_query(ChooseWalletCallback.filter(F.wallet == "Дивиденды"))
     async def choose_dividends_wallet(query: CallbackQuery, state: FSMContext):
         await query.message.edit_text("Выбран кошелек: Дивиденды", reply_markup=None)
         await state.update_data(wallet="Дивиденды")
-        # Далее идет логика по дивидендам
+        # Здесь можно добавить логику для работы с дивидендами, если потребуется
 
     @wallet_router.callback_query(ChooseCreditorCallback.filter(F.creditor == "Назад"))
     async def back_to_wallet_selection(query: CallbackQuery, state: FSMContext):
         await query.message.edit_text("Выберите кошелек:", reply_markup=create_wallet_keyboard())
         await state.set_state(Expense.wallet)  # Переход обратно к выбору кошелька
 
-    # Роутер для выбора кредитора
     @wallet_router.callback_query(Expense.creditor_borrow, ChooseCreditorCallback.filter())
     async def choose_creditor(query: CallbackQuery, callback_data: ChooseCreditorCallback, state: FSMContext):
         creditor = callback_data.creditor
         await query.message.edit_text(f"Выбран кредитор: {creditor}", reply_markup=None)
         await state.update_data(creditor=creditor)
 
-        chapters = bot.google_sheets.get_chapters()
+        data = await state.get_data()
+        chapters = data.get('chapters')
+
+        if not chapters:
+            chapters = bot.google_sheets.get_chapters()
+            await state.update_data(chapters=chapters)
 
         chapter_message = await query.message.edit_text(f"Выбран кредитор: {creditor}. \nВыберите раздел:",
                                                         reply_markup=chapters_choose_kb(chapters))
