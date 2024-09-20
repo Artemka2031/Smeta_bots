@@ -32,7 +32,7 @@ class ProjectManager:
 
         # Определяем операционную систему и настраиваем базовую директорию
         if os.name == 'nt':  # Windows
-            base_dir = Path("P:/Python/Smeta_bots/Data")
+            base_dir = Path("P:/PythonProjects/Smeta_bots/Data")
         elif os.name == 'posix':  # Linux или macOS
             base_dir = Path("/root/SmetaProject2024/Data")
         else:

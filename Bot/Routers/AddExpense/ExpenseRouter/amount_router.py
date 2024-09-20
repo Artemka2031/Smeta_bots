@@ -5,7 +5,6 @@ from aiogram.types import Message
 from Bot.Filters.check_amount import CheckAmount
 from Bot.Routers.AddExpense.expense_state_class import Expense
 from Bot.create_bot import ProjectBot
-from GoogleSheets.google_sheets import logger
 
 
 def create_amount_router(bot: ProjectBot):
@@ -78,7 +77,6 @@ def create_amount_router(bot: ProjectBot):
             coefficient = float(message.text.replace(',', '.'))
         except ValueError:
             await message.delete()
-            logger.info("Введено недопустимое значение. Должны быть только числа больше 0. Разделяющий знак = ','")
             incorrect_message = await bot.send_message(
                 message.chat.id,
                 "Введено недопустимое значение. Должны быть только числа больше 0. Разделяющий знак = ',' "

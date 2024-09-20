@@ -3,6 +3,8 @@ import re
 
 import pygsheets
 
+from Bot.Keyboards.Operations.category import subcategory_choose_kb
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
@@ -35,6 +37,8 @@ class GoogleSheets:
 
     def get_chapters(self, chapter_codes=None, chapter_names=None):
         # Используем переданные столбцы или извлекаем их из таблицы
+        # print(chapter_codes, chapter_names)
+
         chapter_codes = chapter_codes or self.ws.get_col(2, include_tailing_empty=False)
         chapter_names = chapter_names or self.ws.get_col(3, include_tailing_empty=False)
 
@@ -209,8 +213,9 @@ class GoogleSheets:
                     f"Сумма [{amount}₽], Комментарий [{comment}]. Ячейка [{cell.label}].")
 
     def update_expense_with_comment(self, chapter_code, category_code, date, amount, comment, all_codes=None,
-                                    dates_row=None):
+                                    names=None, dates_row=None):
         column_index = self.find_column_by_date(date, dates_row)
+
         if column_index is None:
             raise ValueError(f"Столбец с датой {date} не найден.")
 
@@ -220,11 +225,20 @@ class GoogleSheets:
 
         self.update_cell_with_comment(row_index, column_index, amount, comment)
 
-        section_name = self.ws.cell((row_index - 1, 3)).value.split(':', 1)[-1].strip()
-        category_name = self.ws.cell((row_index, 3)).value
+        # Проверяем, содержит ли `category_code` точку
+        if "." in category_code:
+            subcategory_code = category_code
+            category_code = category_code.split(".", 1)[0]
+            category_name = self.get_category_name(chapter_code, category_code, all_codes, names)
+            subcategory_name = self.get_subcategory_name(chapter_code, category_code, subcategory_code, all_codes,
+                                                         names)
+            category_name_to_use = subcategory_name or category_name
+        else:
+            category_name_to_use = self.get_category_name(chapter_code, category_code, all_codes)
 
+        # Логирование
         logger.info(
-            f"Расход добавлен: Раздел [{chapter_code}], Категория [{section_name}], Подкатегория [{category_name}], "
+            f"Расход добавлен: Раздел [{chapter_code}], Категория [{category_name_to_use}], "
             f"Дата [{date}], Сумма [{amount}₽], Комментарий [{comment}].")
 
     def remove_expense(self, chapter_code, category_code, date, amount, comment, all_codes=None, dates_row=None):
