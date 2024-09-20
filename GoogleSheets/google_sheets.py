@@ -1,20 +1,19 @@
 import logging
 import re
-from pathlib import Path
 
 import pygsheets
-
-cred_path = Path("C:/Users/SMTU_User/PycharmProjects/Smeta_bots/") / "GoogleSheets" / "creds.json"
-# cred_path = Path("P:/Python/Smeta_bots") / "GoogleSheets" / "creds.json"
-# cred_path = Path("P:/PythonProjects/Smeta_bots") / "GoogleSheets" / "creds.json"
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 
 class GoogleSheets:
-    def __init__(self, spreadsheet_url, credentials_file=cred_path):
-        self.client = pygsheets.authorize(service_file=credentials_file)
+    def __init__(self, spreadsheet_url, credentials_file=None):
+        """
+        Инициализация клиента Google Sheets через pygsheets с использованием credentials_file.
+        """
+        self.credentials_file = credentials_file
+        self.client = pygsheets.authorize(service_file=self.credentials_file)
         self.sh = self.client.open_by_url(spreadsheet_url)
         self.ws = self.sh.worksheet_by_title("Общая таблица")
 

@@ -10,24 +10,20 @@ from .commands import BotCommands
 
 
 class ProjectBot(Bot):
-    def __init__(self, token, project_name, google_sheet_path=None, database_path=None):
+    def __init__(self, token, project_name, google_sheet_path=None, database_path=None, credentials_file=None):
         super().__init__(token, parse_mode=ParseMode.HTML)
-        if google_sheet_path:
-            self.google_sheets = GoogleSheets(google_sheet_path)
-            self.project_name = project_name
-            self.logger = self.setup_logging()
+        self.project_name = project_name
 
+        # Создаем или получаем существующий логгер
+        self.logger = logging.getLogger(self.project_name)
+
+        self.google_sheets = GoogleSheets(google_sheet_path, credentials_file) if google_sheet_path else None
         self.database = SqliteDatabase(database_path) if database_path else None
 
         # Привязка модели Expense к базе данных
         Expense._meta.database = self.database
         Coming._meta.database = self.database
 
-        if google_sheet_path:
-            # Здесь должна быть логика инициализации Google Sheets, если это необходимо
-            pass
-
-        # Создание таблиц в базе данных, если они ещё не созданы
         if self.database:
             self.database.connect()
             self.database.create_tables([Expense, Coming], safe=True)
