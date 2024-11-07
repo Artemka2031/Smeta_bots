@@ -1,38 +1,54 @@
-from Elizarovskaya.bot import start_eli_bot
-from Veteranov.bot import start_vet_bot
-from Apollo.bot import start_apo_bot
-from ChernayaRechka.bot import start_che_bot
-from Paroizolaziya.bot import start_par_bot
-from Yanino_bricks.bot import start_yan_bot
-from evropeysakaya.bot import start_evr_bot
-from Kushelevka.bot import start_kush_bot
+import asyncio
+import logging
 
-import threading
-import sys
+from aiogram import Dispatcher
+from aiogram.fsm.storage.memory import MemoryStorage
+
+from Bot.create_bot import ProjectBot
+from Bot.run_bot import setup_routers
+from config import projects
 
 
+# Создание и настройка экземпляра бота
+async def create_bot_instance(project):
+    # Используем logger бота
+    bot = ProjectBot(token=project['token'], project_name=project['name'], google_sheet_path=project['url'],
+                     database_path=project['db'])
+    logger = bot.logger
+
+    logger.info(
+        f"Инициализация бота с токеном {project['token']}, Google Sheet {project['url']} и базой данных {project['db']}")
+
+    storage = MemoryStorage()
+    dp = Dispatcher(bot=bot, storage=storage)
+
+    await setup_routers(dp, bot)
+
+    logger.info("Бот инициализирован и настроен")
+    return dp, bot
 
 
-if __name__ == "__main__":
-    print("enter")
-    start_kush_bot()
-    # bot_functions = [start_kush_bot]
-    # # Создайте и запустите потоки
-    # threads = [threading.Thread(target=func) for func in bot_functions]
-    #
-    # try:
-    #     for thread in threads:
-    #         thread.start()
-    #
-    #     for thread in threads:
-    #         thread.join()
-    #
-    #     # Установите обработчик для события нажатия клавиши
-    #     print("Нажмите Ctrl+C для завершения программы.")
-    #     while True:
-    #         pass
-    #
-    # except KeyboardInterrupt:
-    #     # Завершите программу
-    #     sys.exit()
-    #
+# Запуск бота
+async def run_bot(project):
+    bot = ProjectBot(token=project['token'], project_name=project['name'], google_sheet_path=project['url'],
+                     database_path=project['db'])
+    logger = bot.logger
+    logger.info(f"Запуск бота '{project['name']}'")
+
+    dp, bot = await create_bot_instance(project)
+    await dp.start_polling(bot)
+
+
+# Основная функция для запуска всех ботов
+async def main():
+    logger = logging.getLogger(__name__)
+    logger.info("Запуск основной функции")
+
+    logger.info(f"Запуск ботов")
+
+    tasks = [run_bot(project) for project in projects]
+    await asyncio.gather(*tasks)
+
+
+if __name__ == '__main__':
+    asyncio.run(main())

@@ -1,0 +1,5 @@
+coming_url = "https://docs.google.com/forms/d/e/1FAIpQLSfInr6mQlQMN8eCHvoaDPi-neDuz4mv1A-BW8aWmz0fleUpSQ"
+expense_url = "https://docs.google.com/forms/d/e/1FAIpQLSerFmIP2KHHKloB53H0kK7Uniz8s7dyLLI7bXg-iVGerUHMgA"
+delete_url = "https://docs.google.com/forms/d/e/1FAIpQLSfi5uVw_iBkCpkdh1i3FieQN-s4SRu_CaOo8iNz-jLsNx9idg"
+credit_url = "https://docs.google.com/forms/d/e/1FAIpQLSfVKR7QZzpVxO7KOVBZcLEwlAekMeiCkKAUT5lYcBRvSR4MKg"
+saving_url = "https://docs.google.com/forms/d/e/1FAIpQLSfZDlKhvn1_l4Bftwylr1etlVKXQwsOvXnUbUrL8BY8ry9dzA"
