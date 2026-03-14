@@ -13,6 +13,7 @@ from config import projects
 
 class ProjectManager:
     def __init__(self):
+        self.startup_delay_seconds = 3
         self.logger = self.setup_logging()
 
     def setup_logging(self):
@@ -105,7 +106,18 @@ class ProjectManager:
         Запуск всех ботов из списка проектов.
         """
         all_projects = self.initialize_projects()
-        tasks = [self.run_bot(project) for project in all_projects]
+        tasks = []
+
+        for index, project in enumerate(all_projects, start=1):
+            self.logger.info(f"Запуск проекта {index}/{len(all_projects)}: {project['name']}")
+            tasks.append(asyncio.create_task(self.run_bot(project), name=project["name"]))
+
+            if index < len(all_projects):
+                self.logger.info(
+                    f"Ожидание {self.startup_delay_seconds} сек. перед запуском следующего проекта"
+                )
+                await asyncio.sleep(self.startup_delay_seconds)
+
         await asyncio.gather(*tasks)
 
     def run(self):
