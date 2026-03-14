@@ -30,13 +30,8 @@ class ProjectManager:
         db_name = project['db']  # Название базы данных из конфигурации
         google_sheet_url = project['url']  # URL для Google Sheets
 
-        # Определяем операционную систему и настраиваем базовую директорию
-        if os.name == 'nt':  # Windows
-            base_dir = Path("P:/PythonProjects/Smeta_bots/Data")
-        elif os.name == 'posix':  # Linux или macOS
-            base_dir = Path("/root/SmetaProject2024/Data")
-        else:
-            raise RuntimeError(f"Неизвестная операционная система: {os.name}")
+        base_dir = Path(__file__).resolve().parent / "Data"
+        base_dir.mkdir(parents=True, exist_ok=True)
 
         # Генерация полного пути к базе данных на основе названия базы данных
         db_full_path = base_dir / f"{db_name}.db"

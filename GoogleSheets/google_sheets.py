@@ -1,9 +1,8 @@
 import logging
 import re
+from pathlib import Path
 
 import pygsheets
-
-from Bot.Keyboards.Operations.category import subcategory_choose_kb
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -14,7 +13,7 @@ class GoogleSheets:
         """
         Инициализация клиента Google Sheets через pygsheets с использованием credentials_file.
         """
-        self.credentials_file = credentials_file
+        self.credentials_file = credentials_file or Path(__file__).resolve().with_name("creds.json")
         self.client = pygsheets.authorize(service_file=self.credentials_file)
         self.sh = self.client.open_by_url(spreadsheet_url)
         self.ws = self.sh.worksheet_by_title("Общая таблица")

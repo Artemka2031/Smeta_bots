@@ -4,6 +4,7 @@ from aiogram.types import CallbackQuery
 
 from Bot.Keyboards.Operations.category import ChooseChapterCallback, chapters_choose_kb, ChooseCategoryCallback, \
     category_choose_kb, subcategory_choose_kb, ChooseSubCategoryCallback
+from Bot.Keyboards.start_kb import create_start_kb
 from Bot.Routers.AddComing.coming_state_class import Coming
 from Bot.create_bot import ProjectBot
 
@@ -11,7 +12,22 @@ from Bot.create_bot import ProjectBot
 def create_category_router(bot: ProjectBot):
     category_router = Router()
 
-    @category_router.callback_query(Coming.chapter_code, ChooseChapterCallback.filter())
+    @category_router.callback_query(Coming.chapter_code, ChooseChapterCallback.filter(F.back == True))
+    async def cancel_coming_adding(query: CallbackQuery, state: FSMContext):
+        await query.answer()
+
+        await state.clear()
+
+        try:
+            await query.message.edit_text("Добавление прихода отменено.")
+        except Exception:
+            pass
+
+        await bot.send_message(chat_id=query.message.chat.id,
+                               text="Выберите следующую операцию:",
+                               reply_markup=create_start_kb())
+
+    @category_router.callback_query(Coming.chapter_code, ChooseChapterCallback.filter(F.back == False))
     async def set_chapter(query: CallbackQuery, callback_data: ChooseChapterCallback, state: FSMContext):
         await query.answer()
 
@@ -28,11 +44,11 @@ def create_category_router(bot: ProjectBot):
 
         await state.set_state(Coming.coming_code)
 
-    @category_router.callback_query(Coming.chapter_code, ChooseCategoryCallback.filter(F.back == True))
+    @category_router.callback_query(Coming.coming_code, ChooseCategoryCallback.filter(F.back == True))
     async def back_to_chapters(query: CallbackQuery, state: FSMContext):
         await query.answer()
 
-        chapters = bot.google_sheets.get_chapters()
+        chapters = bot.google_sheets.get_coming()
         await query.message.edit_text(text="Выберите раздел:", reply_markup=chapters_choose_kb(chapters))
         await state.set_state(Coming.chapter_code)
 

@@ -1,6 +1,7 @@
 import logging
 
 from aiogram import Bot
+from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from peewee import SqliteDatabase
 
@@ -11,12 +12,10 @@ from .commands import BotCommands
 
 class ProjectBot(Bot):
     def __init__(self, token, project_name, google_sheet_path=None, database_path=None, credentials_file=None):
-        super().__init__(token, parse_mode=ParseMode.HTML)
+        super().__init__(token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
         self.project_name = project_name
 
-        # Создаем или получаем существующий логгер
-        self.logger = logging.getLogger(self.project_name)
-
+        self.logger = self.setup_logging()
         self.google_sheets = GoogleSheets(google_sheet_path, credentials_file) if google_sheet_path else None
         self.database = SqliteDatabase(database_path) if database_path else None
 
