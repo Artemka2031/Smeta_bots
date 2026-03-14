@@ -94,13 +94,10 @@ class ProjectManager:
         """
         Запуск бота для конкретного проекта.
         """
-        bot = ProjectBot(token=project['token'], project_name=project['name'],
-                         google_sheet_path=project['google_sheet'],
-                         database_path=project['db'], credentials_file=project['credentials_file'])
+        dp, bot = await self.create_bot_instance(project)
         logger = bot.logger
         logger.info(f"Запуск бота '{project['name']}'")
 
-        dp, bot = await self.create_bot_instance(project)
         await dp.start_polling(bot)
 
     async def run_all_bots(self):
