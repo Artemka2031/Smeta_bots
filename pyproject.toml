@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "smeta-bots"
+version = "0.1.0"
+description = "Telegram bots for finance and Google Sheets synchronization"
+authors = ["limpizz"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.13,<3.15"
+aiogram = "3.26.0"
+aiofiles = "25.1.0"
+pygsheets = "2.0.6"
+pydantic = "2.12.5"
+pydantic-settings = "2.10.1"
+PyYAML = "6.0.2"
+SQLAlchemy = "2.0.43"
+alembic = "1.16.5"
+asyncpg = "^0.31.0"
+psycopg = {extras = ["binary"], version = "^3.3.3"}
+loguru = "^0.7.3"
+greenlet = "^3.2.4"
+
+[build-system]
+requires = ["poetry-core>=1.9.0"]
+build-backend = "poetry.core.masonry.api"

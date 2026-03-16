@@ -1,0 +1,13 @@
+from __future__ import annotations
+
+from typing import Protocol
+
+
+class ProjectRepository(Protocol):
+    async def get_by_project_key(self, project_key: str): ...
+
+    async def get_by_id(self, project_id: int): ...
+
+    async def add(self, project): ...
+
+    async def list_active(self): ...
