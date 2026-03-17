@@ -62,3 +62,51 @@ class SheetsGateway(Protocol):
         amount: Any,
         comment: str | None,
     ) -> None: ...
+
+    async def record_borrowing(
+        self,
+        creditor: str,
+        date: str,
+        amount: Any,
+        comment: str | None,
+    ) -> None: ...
+
+    async def remove_borrowing(
+        self,
+        creditor: str,
+        date: str,
+        amount: Any,
+        comment: str | None,
+    ) -> None: ...
+
+    async def record_saving(
+        self,
+        creditor: str,
+        date: str,
+        amount: Any,
+        comment: str | None,
+    ) -> None: ...
+
+    async def remove_saving(
+        self,
+        creditor: str,
+        date: str,
+        amount: Any,
+        comment: str | None,
+    ) -> None: ...
+
+    async def record_repayment(
+        self,
+        creditor: str,
+        date: str,
+        amount: Any,
+        comment: str | None,
+    ) -> None: ...
+
+    async def remove_repayment(
+        self,
+        creditor: str,
+        date: str,
+        amount: Any,
+        comment: str | None,
+    ) -> None: ...

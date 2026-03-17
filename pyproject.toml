@@ -9,7 +9,7 @@ package-mode = false
 python = ">=3.13,<3.15"
 aiogram = "3.26.0"
 aiofiles = "25.1.0"
-pygsheets = "2.0.6"
+aiogoogle = "^5.17.0"
 pydantic = "2.12.5"
 pydantic-settings = "2.10.1"
 PyYAML = "6.0.2"
